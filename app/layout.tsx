@@ -9,7 +9,10 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display", disp
 const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono", display: "swap" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://onchain-poaps.example.com";
+// Stripped of any trailing slash so `${appUrl}/og-image.png` etc. never
+// produces a double slash regardless of how NEXT_PUBLIC_APP_URL was typed
+// into the hosting provider's environment variable settings.
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://onchain-poaps.example.com").replace(/\/+$/, "");
 
 export const metadata: Metadata = {
   title: "Onchain POAPs — proof you were there, forever",

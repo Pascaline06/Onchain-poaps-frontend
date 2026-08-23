@@ -1,23 +1,57 @@
 import { http, createConfig } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
-import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
-import { injected, walletConnect } from "wagmi/connectors";
+import { connectorsForWallets } from "@rainbow-me/rainbowkit";
+import {
+  injectedWallet,
+  metaMaskWallet,
+  coinbaseWallet,
+  walletConnectWallet,
+  rainbowWallet,
+} from "@rainbow-me/rainbowkit/wallets";
 
 const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID ?? "";
 const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA ?? "https://sepolia.base.org";
 
-// The Farcaster connector is listed first and, inside a Farcaster client, it
-// auto-connects the user's Farcaster wallet with no extra tap — that's what
-// "genuinely usable Mini App" means in practice, not just an iframe of the
-// website. Outside Farcaster it's simply inert and injected/WalletConnect
-// take over, so this one config file serves both the website and the Mini App.
+// IMPORTANT: this must go through RainbowKit's own connector system
+// (connectorsForWallets + the wallet definitions below), not wagmi's raw
+// `injected()` / `walletConnect()` from "wagmi/connectors" passed straight
+// into createConfig. RainbowKit's <ConnectButton> modal only knows how to
+// render wallets built through its own wallet-list machinery — plain wagmi
+// connectors aren't recognized by it, and the modal silently falls back to
+// its "you don't have a wallet" onboarding screen with zero options, which
+// is indistinguishable from a broken connector list unless you know to look
+// here. (The Farcaster Mini App connector deliberately isn't listed here —
+// it's connected automatically in app/providers.tsx when the app detects
+// it's actually running inside a Farcaster client, via sdk.isInMiniApp().
+// It should never need to appear as a manual option in this picker.)
+const connectors = connectorsForWallets(
+  [
+    {
+      groupName: "Popular",
+      wallets: [
+        metaMaskWallet,
+        coinbaseWallet,
+        rainbowWallet,
+        ...(projectId ? [walletConnectWallet] : []),
+        injectedWallet,
+      ],
+    },
+  ],
+  {
+    appName: "Onchain POAPs",
+    // RainbowKit requires a projectId even for wallets that don't strictly
+    // need WalletConnect, since it uses WalletConnect infrastructure as a
+    // fallback (e.g. for mobile deep-linking). If this is ever empty in
+    // production, WalletConnect-based options silently misbehave — that's
+    // a configuration problem to fix in the hosting provider's env vars,
+    // not something this file can paper over.
+    projectId: projectId || "MISSING_WALLETCONNECT_PROJECT_ID",
+  }
+);
+
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
-  connectors: [
-    farcasterMiniApp(),
-    injected(),
-    ...(projectId ? [walletConnect({ projectId, showQrModal: true })] : []),
-  ],
+  connectors,
   transports: {
     [baseSepolia.id]: http(rpcUrl),
   },

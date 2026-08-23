@@ -1,0 +1,9 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    // Raw apostrophes/quotes in JSX text render correctly in every browser —
+    // this rule is purely stylistic (wanting &apos; instead of ') and adds
+    // no functional or accessibility benefit, so we don't enforce it.
+    "react/no-unescaped-entities": "off"
+  }
+}

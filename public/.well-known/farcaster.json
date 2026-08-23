@@ -1,0 +1,22 @@
+{
+  "accountAssociation": {
+    "header": "REPLACE_WITH_BASE64_HEADER",
+    "payload": "REPLACE_WITH_BASE64_PAYLOAD",
+    "signature": "REPLACE_WITH_BASE64_SIGNATURE"
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "Onchain POAPs",
+    "iconUrl": "https://onchain-poaps.example.com/icon.png",
+    "homeUrl": "https://onchain-poaps.example.com",
+    "imageUrl": "https://onchain-poaps.example.com/og-image.png",
+    "buttonTitle": "Mint a POAP",
+    "splashImageUrl": "https://onchain-poaps.example.com/splash.png",
+    "splashBackgroundColor": "#faf7f0",
+
+    "subtitle": "Fully onchain proof of attendance",
+    "description": "Create, distribute, and collect fully onchain POAPs on Base. Register events, run allowlists and signature-gated mints, and build a real collection.",
+    "primaryCategory": "art-creativity",
+    "tags": ["poap", "base", "onchain", "events", "collectibles"]
+  }
+}

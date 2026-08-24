@@ -87,7 +87,7 @@ export default function EventPage() {
           </dl>
 
           <div className="mt-6">
-            <MintPanel eventId={eventId} evt={{ name, isPublic, isSoulbound, allowlistRoot, createdAt, creator }} />
+            <MintPanel eventId={eventId} evt={{ name, isPublic, isSoulbound, allowlistRoot, createdAt, creator }} prefillSig={prefillSig} />
           </div>
 
           {prefillSig && <p className="mt-3 text-xs text-ink/40">Signature detected from your link — paste it into the box above if it wasn't filled automatically.</p>}

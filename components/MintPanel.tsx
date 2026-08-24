@@ -18,10 +18,10 @@ interface EventData {
  * live. This is the "clearly explain which minting methods are available,
  * who can use them, and any time restrictions" requirement.
  */
-export function MintPanel({ eventId, evt }: { eventId: bigint; evt: EventData }) {
+export function MintPanel({ eventId, evt, prefillSig }: { eventId: bigint; evt: EventData; prefillSig?: string }) {
   const { address, chainId } = useAccount();
   const [proofInput, setProofInput] = useState("");
-  const [signatureInput, setSignatureInput] = useState("");
+  const [signatureInput, setSignatureInput] = useState(prefillSig ?? "");
 
   const timing = computeTiming(evt.createdAt);
   const hasAllowlist = evt.allowlistRoot !== ("0x0000000000000000000000000000000000000000000000000000000000000000" as `0x${string}`) && evt.allowlistRoot !== ("0x0" as `0x${string}`);

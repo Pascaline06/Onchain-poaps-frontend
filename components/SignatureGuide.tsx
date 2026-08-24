@@ -50,7 +50,7 @@ export function SignatureGuide({ eventId, appUrl }: { eventId: bigint; appUrl: s
   return (
     <div className="space-y-4">
       <div className="card space-y-2 p-4 text-sm text-ink/70">
-        <p className="font-semibold text-white">
+        <p className="font-semibold text-ink">
           How signature minting works
           <InfoTip title="Signature minting, in plain terms">
             You (the creator) sign a short message that says "this exact wallet may mint this exact

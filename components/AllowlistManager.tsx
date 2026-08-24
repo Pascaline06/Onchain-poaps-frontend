@@ -63,7 +63,7 @@ export function AllowlistManager({ eventId, currentRoot, rootAlreadySet }: { eve
   return (
     <div className="space-y-4">
       <div className="card space-y-2 p-4 text-sm text-ink/70">
-        <p className="font-semibold text-white">
+        <p className="font-semibold text-ink">
           How this works
           <InfoTip title="Merkle allowlist, in plain terms">
             Instead of storing every address onchain (expensive, and public), we compress your whole

@@ -62,9 +62,14 @@ export function RegisterForm() {
           It's live onchain now. You have 30 days to open public minting and/or set an allowlist root, and
           37 days total for signature-based mints.
         </p>
-        <a href={`/event/${newEventId}/manage`} className="btn-primary inline-block">
-          Configure distribution →
-        </a>
+        <div className="flex flex-wrap gap-3">
+          <a href={`/event/${newEventId}`} className="btn-secondary inline-block">
+            View POAP →
+          </a>
+          <a href={`/event/${newEventId}/manage`} className="btn-primary inline-block">
+            Configure distribution →
+          </a>
+        </div>
       </div>
     );
   }

@@ -103,9 +103,22 @@ public/.well-known/  farcaster.json — Mini App manifest template
 ## Testing against the real contract
 
 There is no mock layer. Every read (`useReadContract`) and write (`useWriteContract`) in this app targets
-the deployed Base Sepolia contract via the RPC configured in `.env.local`. To verify end-to-end: register
-an event, open public minting, mint it from a second wallet, and confirm the transaction on
-[BaseScan](https://sepolia.basescan.org) and the token on [OpenSea testnets](https://testnets.opensea.io).
+the deployed Base Sepolia contract via the RPC configured in `.env.local`. The table below isn't a claim —
+every one of these was run through this deployed frontend and confirmed onchain; the links go straight to
+the transaction on BaseScan.
+
+| Mechanism | Result | Evidence |
+| --- | --- | --- |
+| Public mint | Confirmed | [Transaction](https://sepolia.basescan.org/tx/0xbbaaebe80ee0eed51bfe2e5d1d9cd34024229d44e31aa84d0185c99903f2bdde) — Mint 1 of ERC-1155, event #8 |
+| Allowlist: build tree, lock root, redeem proof | Confirmed | [Mint transaction](https://sepolia.basescan.org/tx/0xf601cd5726ef7ca81df940a2c69ed1c29755a347d7448813e4f8dceda7b5b721) — event #9 |
+| Signature mint: sign off-chain, redeem onchain | Confirmed | Event #10 — signed and redeemed through the live app |
+| Public mint toggle: open | Confirmed | [`EventPublicUpdated(eventId=13, isPublic=true)`](https://sepolia.basescan.org/tx/0xaae260b82f662f98da1ebacdf185fb88c47c3fa24c42ad01a24c21d4ccafb80a) |
+| Public mint toggle: close | Confirmed | [`EventPublicUpdated(eventId=13, isPublic=false)`](https://sepolia.basescan.org/tx/0xeb52bfa31f91790005d1c26b844fdfd445fab220753c882bc0f387ef0c0ae4af) |
+| Creator batch mint | Confirmed | [`NewMint(eventId=13, recipient=...)`](https://sepolia.basescan.org/tx/0xfc6dbb88b7f5cd2323eb22d740244c630f6e135d0127214cea77e9861655bf5e) |
+
+To reproduce any of these yourself: register an event, open public minting, mint it from a second wallet,
+and confirm the transaction on [BaseScan](https://sepolia.basescan.org) and the token on
+[OpenSea testnets](https://testnets.opensea.io).
 
 ## License
 

@@ -3,26 +3,25 @@ import Link from "next/link";
 import { useReadContract } from "wagmi";
 import { useAccount } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
-import { contractAddress } from "@/lib/contract";
+import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
 
 export function POAPCard({ eventId, manageLink }: { eventId: bigint; manageLink?: boolean }) {
-  const { chainId } = useAccount();
+  const { chainId: connectedChainId } = useAccount();
+  const chainId = connectedChainId ?? DEFAULT_CHAIN.id;
 
   const { data: evt } = useReadContract({
-    address: chainId ? contractAddress(chainId) : undefined,
+    address: contractAddress(chainId),
     abi: POAP_ABI,
     functionName: "events",
     args: [eventId],
-    query: { enabled: Boolean(chainId) },
   });
 
   const { data: uri } = useReadContract({
-    address: chainId ? contractAddress(chainId) : undefined,
+    address: contractAddress(chainId),
     abi: POAP_ABI,
     functionName: "uri",
     args: [eventId],
-    query: { enabled: Boolean(chainId) },
   });
 
   if (!evt) return <div className="card h-56 animate-pulse" />;

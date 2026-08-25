@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
-import { contractAddress } from "@/lib/contract";
+import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
 import { Nav } from "@/components/Nav";
 import { MintPanel } from "@/components/MintPanel";
@@ -12,7 +12,11 @@ import { Countdown } from "@/components/Countdown";
 export default function EventPage() {
   const { id } = useParams<{ id: string }>();
   const eventId = BigInt(id);
-  const { chainId } = useAccount();
+  // Public event data shouldn't wait on a connected wallet — someone scanning
+  // a shared link or QR code should see the artwork immediately and decide
+  // whether to connect, not stare at a loading state until they do.
+  const { chainId: connectedChainId } = useAccount();
+  const chainId = connectedChainId ?? DEFAULT_CHAIN.id;
   const search = useSearchParams();
 
   // Supports the QR-code flow: a link like /event/3?sig=0x...&for=0xabc pre-fills
@@ -20,19 +24,17 @@ export default function EventPage() {
   const [prefillSig] = useState(search.get("sig") ?? "");
 
   const { data: evt, isLoading } = useReadContract({
-    address: chainId ? contractAddress(chainId) : undefined,
+    address: contractAddress(chainId),
     abi: POAP_ABI,
     functionName: "events",
     args: [eventId],
-    query: { enabled: Boolean(chainId) },
   });
 
   const { data: uri } = useReadContract({
-    address: chainId ? contractAddress(chainId) : undefined,
+    address: contractAddress(chainId),
     abi: POAP_ABI,
     functionName: "uri",
     args: [eventId],
-    query: { enabled: Boolean(chainId) },
   });
 
   if (isLoading || !evt) {

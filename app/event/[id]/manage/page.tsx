@@ -2,7 +2,7 @@
 import { useParams } from "next/navigation";
 import { useAccount, useReadContract } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
-import { contractAddress } from "@/lib/contract";
+import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { Nav } from "@/components/Nav";
 import { PublicMintToggle } from "@/components/PublicMintToggle";
 import { AllowlistManager } from "@/components/AllowlistManager";
@@ -15,15 +15,15 @@ const ZERO_ROOT = "0x00000000000000000000000000000000000000000000000000000000000
 export default function ManagePage() {
   const { id } = useParams<{ id: string }>();
   const eventId = BigInt(id);
-  const { address, chainId } = useAccount();
+  const { address, chainId: connectedChainId } = useAccount();
+  const chainId = connectedChainId ?? DEFAULT_CHAIN.id;
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? (typeof window !== "undefined" ? window.location.origin : "")).replace(/\/+$/, "");
 
   const { data: evt, isLoading } = useReadContract({
-    address: chainId ? contractAddress(chainId) : undefined,
+    address: contractAddress(chainId),
     abi: POAP_ABI,
     functionName: "events",
     args: [eventId],
-    query: { enabled: Boolean(chainId) },
   });
 
   if (isLoading || !evt) {

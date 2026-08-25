@@ -6,6 +6,7 @@ import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { MintPanel } from "@/components/MintPanel";
 import { Countdown } from "@/components/Countdown";
 
@@ -99,6 +100,7 @@ export default function EventPage() {
           </a>
         </div>
       </div>
+      <Footer />
     </main>
   );
 }

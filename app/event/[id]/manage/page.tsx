@@ -4,6 +4,7 @@ import { useAccount, useReadContract } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { PublicMintToggle } from "@/components/PublicMintToggle";
 import { AllowlistManager } from "@/components/AllowlistManager";
 import { SignatureGuide } from "@/components/SignatureGuide";
@@ -93,6 +94,7 @@ export default function ManagePage() {
           <CreatorBatchMint eventId={eventId} />
         </section>
       </div>
+      <Footer />
     </main>
   );
 }

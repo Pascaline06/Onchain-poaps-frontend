@@ -3,6 +3,7 @@ import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress } from "@/lib/contract";
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { POAPCard } from "@/components/POAPCard";
 import { ConnectWallet } from "@/components/ConnectWallet";
 
@@ -57,6 +58,7 @@ export default function GalleryPage() {
           </div>
         )}
       </div>
+      <Footer />
     </main>
   );
 }

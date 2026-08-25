@@ -1,4 +1,5 @@
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 
 const sections = [
   { id: "creating", title: "Creating a POAP" },
@@ -33,10 +34,11 @@ export default function DocsPage() {
 
         <article className="prose max-w-none space-y-12">
           <div>
-            <h1 className="font-display text-3xl font-bold">Docs</h1>
-            <p className="text-ink/60">
-              Everything below describes the actual OnchainPOAPs contract — every rule, limit, and
-              deadline here matches <code>Poap.sol</code> exactly, not just this frontend.
+            <h1 className="font-display text-4xl font-bold tracking-tight">Docs</h1>
+            <p className="mt-2 text-lg text-ink/60">
+              Not a summary — every rule, limit, and deadline on this page matches <code>Poap.sol</code>
+              line for line. If something here turns out to be wrong, the contract is right and this page
+              needs fixing, not the other way around.
             </p>
           </div>
 
@@ -213,6 +215,7 @@ export default function DocsPage() {
           </section>
         </article>
       </div>
+      <Footer />
     </main>
   );
 }

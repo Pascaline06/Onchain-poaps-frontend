@@ -3,7 +3,9 @@ import { useAccount, useReadContract } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { Nav } from "@/components/Nav";
+import { Footer } from "@/components/Footer";
 import { POAPCard } from "@/components/POAPCard";
+import { HeroStack } from "@/components/HeroStack";
 
 export default function Home() {
   // Browsing is a public, read-only action — it shouldn't require connecting a
@@ -24,26 +26,32 @@ export default function Home() {
   return (
     <main>
       <Nav />
-      <section className="px-6 py-16 text-center">
-        <span className="stamp mb-6 inline-flex text-xs">EST. ONCHAIN</span>
-        <h1 className="font-display text-4xl font-bold leading-tight sm:text-5xl">
-          Proof you were there. <span className="text-accent">Forever.</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-xl text-ink/60">
-          No IPFS pin to lose. No backend to go down. No company to shut it off. Your event artwork lives
-          in the same place your transaction does — onchain, next to it, forever.
-        </p>
-        <a href="/register" className="btn-primary mt-6 inline-block">
-          Create a POAP
-        </a>
+
+      <section className="mx-auto grid max-w-5xl grid-cols-1 items-center gap-12 px-6 py-16 sm:py-24 lg:grid-cols-2">
+        <div className="order-2 text-center lg:order-1 lg:text-left">
+          <span className="stamp mb-6 inline-flex text-xs">EST. ONCHAIN</span>
+          <h1 className="font-display text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
+            Proof you were there. <span className="text-accent">Forever.</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-md text-lg text-ink/60 lg:mx-0">
+            No IPFS pin to lose. No backend to go down. No company to shut it off. Your artwork lives in
+            the same place your transaction does.
+          </p>
+          <a href="/register" className="btn-primary mt-8 inline-block text-base">
+            Create a POAP
+          </a>
+        </div>
+        <div className="order-1 lg:order-2">
+          <HeroStack />
+        </div>
       </section>
 
-      <section className="border-y border-ink/10 bg-ink/[0.02] px-6 py-14">
-        <h2 className="text-center font-display text-2xl font-semibold">How it works</h2>
-        <p className="mx-auto mt-2 max-w-md text-center text-sm text-ink/60">
+      <section className="border-y border-ink/10 bg-ink/[0.02] px-6 py-16">
+        <h2 className="text-center font-display text-3xl font-semibold tracking-tight">How it works</h2>
+        <p className="mx-auto mt-2 max-w-md text-center text-ink/60">
           Four steps. No signup, no dashboard to check back on.
         </p>
-        <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mx-auto mt-12 grid max-w-4xl grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               n: "01",
@@ -69,23 +77,30 @@ export default function Home() {
             <div key={step.n}>
               <span className="font-mono text-sm text-accent">{step.n}</span>
               <h3 className="mt-2 font-display text-lg font-semibold">{step.title}</h3>
-              <p className="mt-1 text-sm text-ink/60">{step.body}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-ink/60">{step.body}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="px-6 py-16">
-        <h2 className="mb-4 font-display text-xl font-semibold">Explore</h2>
+      <section className="mx-auto max-w-6xl px-6 py-20">
+        <div className="mb-8 flex items-baseline justify-between">
+          <h2 className="font-display text-2xl font-semibold tracking-tight">Explore</h2>
+          <span className="font-mono text-xs text-ink/40">
+            {total !== undefined ? `${Number(total) + 1} onchain` : ""}
+          </span>
+        </div>
         {ids.length === 0 && (
           <p className="text-ink/50">No POAPs registered yet on this contract — be the first.</p>
         )}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {ids.map((id) => (
             <POAPCard key={id.toString()} eventId={id} />
           ))}
         </div>
       </section>
+
+      <Footer />
     </main>
   );
 }

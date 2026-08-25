@@ -1,17 +1,17 @@
 {
   "accountAssociation": {
-    "header": "REPLACE_WITH_BASE64_HEADER",
-    "payload": "REPLACE_WITH_BASE64_PAYLOAD",
-    "signature": "REPLACE_WITH_BASE64_SIGNATURE"
+    "header": "eyJmaWQiOjExMTkyNDYsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHg2QTNDOTJkMjRCZkFCM2Q3MWMzQmZCMjI2NGNBNjEwNjkzMWY2MjM3In0",
+    "payload": "eyJkb21haW4iOiJvbmNoYWluLXBvYXBzLWZyb250ZW5kLW11LnZlcmNlbC5hcHAifQ",
+    "signature": "rVs4zCLou8EVM/lz+TqkgQ+2FylBKtLz/zQxg7p6QREN2AWwlEW7MF9ZLZn9nncySJatEQAh5MKmCwF6t9fkYhw="
   },
   "miniapp": {
     "version": "1",
     "name": "Onchain POAPs",
-    "iconUrl": "https://onchain-poaps.example.com/icon.png",
-    "homeUrl": "https://onchain-poaps.example.com",
-    "imageUrl": "https://onchain-poaps.example.com/og-image.png",
+    "iconUrl": "https://onchain-poaps-frontend-mu.vercel.app/icon.png",
+    "homeUrl": "https://onchain-poaps-frontend-mu.vercel.app",
+    "imageUrl": "https://onchain-poaps-frontend-mu.vercel.app/og-image.png",
     "buttonTitle": "Mint a POAP",
-    "splashImageUrl": "https://onchain-poaps.example.com/splash.png",
+    "splashImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/splash.png",
     "splashBackgroundColor": "#faf7f0",
 
     "subtitle": "Fully onchain proof of attendance",

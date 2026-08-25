@@ -14,8 +14,8 @@
     "splashImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/splash.png",
     "splashBackgroundColor": "#faf7f0",
 
-    "subtitle": "Fully onchain proof of attendance",
-    "description": "Create, distribute, and collect fully onchain POAPs on Base. Register events, run allowlists and signature-gated mints, and build a real collection.",
+    "subtitle": "Onchain proof of attendance",
+    "description": "Create, distribute, and collect fully onchain POAPs on Base — no IPFS, no backend.",
     "primaryCategory": "art-creativity",
     "tags": ["poap", "base", "onchain", "events", "collectibles"]
   }

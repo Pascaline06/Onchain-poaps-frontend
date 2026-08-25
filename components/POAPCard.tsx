@@ -30,13 +30,23 @@ export function POAPCard({ eventId, manageLink }: { eventId: bigint; manageLink?
   const meta = uri ? decodeTokenUri(uri) : null;
 
   return (
-    <Link href={`/event/${eventId}`} className="card block overflow-hidden p-4 transition hover:border-accent/50">
+    <Link
+      href={`/event/${eventId}`}
+      className="card group block overflow-hidden p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-lg"
+    >
       <div className="mb-3 flex h-32 items-center justify-center rounded-xl bg-ink/5 p-3">
         {meta?.image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={meta.image} alt={name} className="max-h-full max-w-full" />
+          <img src={meta.image} alt={name} className="max-h-full max-w-full transition-transform duration-200 group-hover:scale-[1.03]" />
         ) : (
-          <span className="text-xs text-ink/30">no artwork</span>
+          <div className="flex flex-col items-center gap-1.5 text-ink/25">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1.5" y="4.5" width="25" height="19" rx="2.5" stroke="currentColor" strokeWidth="1.4" strokeDasharray="3 3" />
+              <circle cx="9" cy="12" r="2" stroke="currentColor" strokeWidth="1.4" />
+              <path d="M2 20l6-5 4.5 4 5-6 8.5 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[10px] uppercase tracking-wide">Artwork not set</span>
+          </div>
         )}
       </div>
       <p className="truncate font-display font-semibold">{name || `POAP #${eventId}`}</p>

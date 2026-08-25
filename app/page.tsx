@@ -30,8 +30,8 @@ export default function Home() {
           Proof you were there. <span className="text-accent">Forever.</span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-ink/60">
-          Fully onchain Proof of Attendance tokens on Base. No IPFS, no backend, no dead links — every
-          pixel of every badge lives on the blockchain itself.
+          No IPFS pin to lose. No backend to go down. No company to shut it off. Your event artwork lives
+          in the same place your transaction does — onchain, next to it, forever.
         </p>
         <a href="/register" className="btn-primary mt-6 inline-block">
           Create a POAP
@@ -41,29 +41,29 @@ export default function Home() {
       <section className="border-y border-ink/10 bg-ink/[0.02] px-6 py-14">
         <h2 className="text-center font-display text-2xl font-semibold">How it works</h2>
         <p className="mx-auto mt-2 max-w-md text-center text-sm text-ink/60">
-          Four steps, no backend, nothing that can go down or get taken away.
+          Four steps. No signup, no dashboard to check back on.
         </p>
         <div className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {[
             {
               n: "01",
               title: "Register",
-              body: "Upload your event's artwork as SVG. It's stored directly onchain — no IPFS pin that can vanish.",
+              body: "Drop in your SVG. It's written straight into the contract — nothing to pin, nothing to lose.",
             },
             {
               n: "02",
               title: "Distribute",
-              body: "Pick how people claim it: open to everyone, an allowlist, or a signed QR code for a live event.",
+              body: "Open it to anyone, gate it to a list, or sign one QR code that mints on the spot at your event.",
             },
             {
               n: "03",
               title: "Mint",
-              body: "Attendees connect a wallet and claim their POAP in one transaction. No account, no signup.",
+              body: "One tap, one transaction. No account to make first.",
             },
             {
               n: "04",
               title: "Collect",
-              body: "Every POAP shows up in a real gallery, verifiable on BaseScan and OpenSea, forever.",
+              body: "It shows up in a real gallery — and on OpenSea and BaseScan, for anyone checking your work.",
             },
           ].map((step) => (
             <div key={step.n}>

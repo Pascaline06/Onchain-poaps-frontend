@@ -11,15 +11,34 @@ export interface POAPMetadata {
  * there's no gateway to fetch, no IPFS to fall back on, so decoding this is
  * the entire "fetch metadata" step for this protocol.
  */
+/**
+ * The contract's uri() returns a full data:application/json;base64 URI —
+ * there's no gateway to fetch, no IPFS to fall back on, so decoding this is
+ * the entire "fetch metadata" step for this protocol.
+ */
 export function decodeTokenUri(uri: string): POAPMetadata | null {
   const prefix = "data:application/json;base64,";
   if (!uri.startsWith(prefix)) return null;
   try {
-    const json = typeof window === "undefined"
-      ? Buffer.from(uri.slice(prefix.length), "base64").toString("utf-8")
-      : atob(uri.slice(prefix.length));
+    const json = decodeBase64Utf8(uri.slice(prefix.length));
     return JSON.parse(json) as POAPMetadata;
   } catch {
     return null;
   }
+}
+
+// atob() only decodes base64 into a Latin1 (single-byte) string — the moment
+// a creator's event name, description, or SVG text contains an emoji, an
+// accented character, or any multi-byte UTF-8 sequence, atob mangles it and
+// JSON.parse silently fails, which was showing up as "no artwork" for other
+// creators' POAPs even though the data onchain was perfectly valid. Decoding
+// through bytes + TextDecoder handles UTF-8 correctly, matching what
+// Buffer.from(..., "base64").toString("utf-8") already does on the server.
+function decodeBase64Utf8(b64: string): string {
+  if (typeof window === "undefined") {
+    return Buffer.from(b64, "base64").toString("utf-8");
+  }
+  const binary = atob(b64);
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder("utf-8").decode(bytes);
 }

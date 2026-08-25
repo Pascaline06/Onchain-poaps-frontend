@@ -20,11 +20,11 @@ body {
 }
 
 .btn-primary {
-  @apply rounded-xl bg-accent px-5 py-3 font-semibold text-ink transition hover:brightness-110 disabled:opacity-40 disabled:hover:brightness-100;
+  @apply rounded-xl bg-accent px-5 py-3 font-semibold text-ink shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:brightness-110 active:translate-y-0 active:shadow-sm disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:brightness-100;
 }
 
 .btn-secondary {
-  @apply rounded-xl border border-ink/20 px-5 py-3 font-semibold text-ink transition hover:bg-ink/5 disabled:opacity-40;
+  @apply rounded-xl border border-ink/20 px-5 py-3 font-semibold text-ink transition-all duration-150 hover:-translate-y-0.5 hover:bg-ink/5 active:translate-y-0 disabled:opacity-40 disabled:hover:translate-y-0;
 }
 
 .pill {

@@ -11,17 +11,28 @@ export interface POAPMetadata {
  * there's no gateway to fetch, no IPFS to fall back on, so decoding this is
  * the entire "fetch metadata" step for this protocol.
  */
-/**
- * The contract's uri() returns a full data:application/json;base64 URI —
- * there's no gateway to fetch, no IPFS to fall back on, so decoding this is
- * the entire "fetch metadata" step for this protocol.
- */
 export function decodeTokenUri(uri: string): POAPMetadata | null {
   const prefix = "data:application/json;base64,";
   if (!uri.startsWith(prefix)) return null;
   try {
     const json = decodeBase64Utf8(uri.slice(prefix.length));
     return JSON.parse(json) as POAPMetadata;
+  } catch {
+    return null;
+  }
+}
+
+// Browsers refuse to render some otherwise-valid SVGs when they're loaded
+// via <img src="data:...">, for security reasons (no external stylesheets,
+// no scripts, and some engines are stricter about filters/foreignObject in
+// that context than when the same SVG is placed inline in the page). This
+// extracts the raw <svg>...</svg> markup so a component can render it
+// directly instead, which handles more of those cases.
+export function decodeRawSvg(imageDataUri: string): string | null {
+  const prefix = "data:image/svg+xml;base64,";
+  if (!imageDataUri.startsWith(prefix)) return null;
+  try {
+    return decodeBase64Utf8(imageDataUri.slice(prefix.length));
   } catch {
     return null;
   }

@@ -6,6 +6,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
+import { POAPArtwork } from "@/components/POAPArtwork";
 
 /**
  * Full-screen kiosk display for live events.
@@ -89,11 +90,11 @@ export default function KioskPage() {
           <h1 className="font-display text-4xl font-bold leading-tight sm:text-6xl">{name}</h1>
 
           {meta?.image && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={meta.image}
+            <POAPArtwork
+              imageDataUri={meta.image}
               alt={name}
-              className="h-40 w-40 rounded-2xl border-4 border-ink/10 object-contain shadow-lg sm:h-56 sm:w-56"
+              className="flex h-40 w-40 items-center justify-center rounded-2xl border-4 border-ink/10 shadow-lg sm:h-56 sm:w-56 [&_svg]:max-h-full [&_svg]:max-w-full"
+              fallback={null}
             />
           )}
 

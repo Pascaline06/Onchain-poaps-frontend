@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
+import { POAPArtwork } from "./POAPArtwork";
 
 /**
  * A fanned stack of real, live artwork from the contract — not a mockup, not
@@ -31,8 +32,12 @@ function StackedThumb({ eventId, rotate, z }: { eventId: bigint; rotate: number;
       className="card absolute h-40 w-40 overflow-hidden p-2 shadow-xl sm:h-48 sm:w-48"
       style={{ transform: `rotate(${rotate}deg)`, zIndex: z, left: "50%", marginLeft: "-5rem" }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={meta.image} alt={meta.name} className="h-full w-full object-contain" />
+      <POAPArtwork
+        imageDataUri={meta.image}
+        alt={meta.name}
+        className="flex h-full w-full items-center justify-center [&_svg]:max-h-full [&_svg]:max-w-full"
+        fallback={null}
+      />
     </div>
   );
 }

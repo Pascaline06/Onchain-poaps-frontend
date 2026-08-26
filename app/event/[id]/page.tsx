@@ -9,6 +9,7 @@ import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 import { MintPanel } from "@/components/MintPanel";
 import { Countdown } from "@/components/Countdown";
+import { POAPArtwork } from "@/components/POAPArtwork";
 
 export default function EventPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,13 +56,22 @@ export default function EventPage() {
       <Nav />
       <div className="mx-auto grid max-w-4xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-2">
         <div>
-          <div className="card flex items-center justify-center p-6">
-            {meta?.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={meta.image} alt={name} className="max-h-80" />
-            ) : (
-              <span className="text-ink/30">no artwork</span>
-            )}
+          <div className="card flex h-80 items-center justify-center p-6">
+            <POAPArtwork
+              imageDataUri={meta?.image}
+              alt={name}
+              className="flex h-full w-full items-center justify-center [&_svg]:max-h-full [&_svg]:max-w-full"
+              fallback={
+                <div className="flex flex-col items-center gap-2 text-ink/25">
+                  <svg width="36" height="36" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="1.5" y="4.5" width="25" height="19" rx="2.5" stroke="currentColor" strokeWidth="1.4" strokeDasharray="3 3" />
+                    <circle cx="9" cy="12" r="2" stroke="currentColor" strokeWidth="1.4" />
+                    <path d="M2 20l6-5 4.5 4 5-6 8.5 7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="text-xs uppercase tracking-wide">No artwork set</span>
+                </div>
+              }
+            />
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             {isSoulbound && <span className="pill bg-ink/10 text-ink/60">Soulbound</span>}

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
+import DOMPurify from "dompurify";
 import { optimizeSvg } from "@/lib/svg";
 import { InfoTip } from "./InfoTip";
 
@@ -106,8 +107,16 @@ export function SvgDropzone({ value, onChange }: Props) {
 
       {value && (
         <div className="card flex h-40 items-center justify-center p-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <div className="h-32 w-32" dangerouslySetInnerHTML={{ __html: value }} />
+          <div
+            className="h-32 w-32"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(value, {
+                USE_PROFILES: { svg: true, svgFilters: true },
+                FORBID_TAGS: ["script"],
+                FORBID_ATTR: ["onload", "onerror", "onclick"],
+              }),
+            }}
+          />
         </div>
       )}
 

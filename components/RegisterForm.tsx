@@ -6,6 +6,7 @@ import { POAP_ABI } from "@/lib/abi";
 import { contractAddress } from "@/lib/contract";
 import { toFlags } from "@/lib/flags";
 import { SvgDropzone } from "./SvgDropzone";
+import { StampDesigner } from "./StampDesigner";
 import { InfoTip } from "./InfoTip";
 
 export function RegisterForm() {
@@ -16,6 +17,7 @@ export function RegisterForm() {
   const [externalUrl, setExternalUrl] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [svg, setSvg] = useState("");
+  const [artworkMode, setArtworkMode] = useState<"design" | "paste">("design");
   const [isSoulbound, setIsSoulbound] = useState(true);
   const [isPublic, setIsPublic] = useState(false);
 
@@ -131,7 +133,44 @@ export function RegisterForm() {
         />
       </div>
 
-      <SvgDropzone value={svg} onChange={setSvg} />
+      <div>
+        <label className="text-sm font-medium text-ink/80">POAP artwork *</label>
+        <div className="mt-2 flex gap-2">
+          <button
+            type="button"
+            onClick={() => setArtworkMode("design")}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+              artworkMode === "design" ? "border-accent bg-accent/10 text-accent" : "border-ink/15 text-ink/60 hover:border-ink/30"
+            }`}
+          >
+            Design a stamp
+          </button>
+          <button
+            type="button"
+            onClick={() => setArtworkMode("paste")}
+            className={`rounded-full border px-4 py-1.5 text-sm font-medium transition ${
+              artworkMode === "paste" ? "border-accent bg-accent/10 text-accent" : "border-ink/15 text-ink/60 hover:border-ink/30"
+            }`}
+          >
+            I have my own SVG
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-ink/50">
+          {artworkMode === "design"
+            ? "No design tool needed — pick a layout, a palette, and a couple of words, and it's built right here as real, onchain-storable SVG."
+            : "Bring artwork you already made elsewhere — drop in a file, paste the markup, or optimize it with SVGO before registering."}
+        </p>
+        <div className="mt-4">
+          {artworkMode === "design" ? (
+            <StampDesigner onUse={setSvg} />
+          ) : (
+            <SvgDropzone value={svg} onChange={setSvg} />
+          )}
+        </div>
+        {svg && artworkMode === "design" && (
+          <p className="mt-2 text-xs text-accent2">✓ Design ready — switch tabs anytime before submitting to change it.</p>
+        )}
+      </div>
 
       <div className="card space-y-4 p-4">
         <div className="flex items-center justify-between">

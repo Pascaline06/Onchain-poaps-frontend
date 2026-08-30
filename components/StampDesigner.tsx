@@ -1,16 +1,9 @@
 "use client";
 import { useMemo, useState } from "react";
 import { generateStampSvg, LAYOUT_LABELS, ICON_LABELS, type IconKey, type LayoutKey } from "@/lib/svgTemplates";
+import { deriveInk } from "@/lib/generativeInk";
 import { optimizeSvg } from "@/lib/svg";
 import { POAPArtwork } from "./POAPArtwork";
-
-const PALETTES: { name: string; accent: string; bg: string }[] = [
-  { name: "Ink & Ember", accent: "#ff5a1f", bg: "#0b0d10" },
-  { name: "Paper & Ink", accent: "#0b0d10", bg: "#faf7f0" },
-  { name: "Deep Sea", accent: "#5ecbff", bg: "#0a1e2e" },
-  { name: "Midnight Gold", accent: "#f4c542", bg: "#161221" },
-  { name: "Field Note", accent: "#3d6b47", bg: "#f3ede0" },
-];
 
 /**
  * An in-browser stamp designer, offered as an alternative to pasting a raw
@@ -24,12 +17,18 @@ export function StampDesigner({ onUse }: { onUse: (svg: string) => void }) {
   const [subtitle, setSubtitle] = useState("Base · 2026");
   const [layout, setLayout] = useState<LayoutKey>("circularStamp");
   const [icon, setIcon] = useState<IconKey>("star");
-  const [paletteIdx, setPaletteIdx] = useState(0);
+  const [inkNonce, setInkNonce] = useState(0);
   const [customAccent, setCustomAccent] = useState<string | null>(null);
   const [customBg, setCustomBg] = useState<string | null>(null);
 
-  const accentColor = customAccent ?? PALETTES[paletteIdx].accent;
-  const bgColor = customBg ?? PALETTES[paletteIdx].bg;
+  // The ink is derived from the event's own title rather than picked off a
+  // shelf of preset swatches — the same title always finds its way back to
+  // the same ink, and "Shuffle" asks for a few more variations without
+  // touching the title itself.
+  const generatedInk = useMemo(() => deriveInk(title, inkNonce), [title, inkNonce]);
+  const accentColor = customAccent ?? generatedInk.accent;
+  const bgColor = customBg ?? generatedInk.bg;
+  const isCustomized = customAccent !== null || customBg !== null;
 
   const svg = useMemo(
     () => generateStampSvg({ title, subtitle, accentColor, bgColor, icon, layout }),
@@ -102,26 +101,45 @@ export function StampDesigner({ onUse }: { onUse: (svg: string) => void }) {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-ink/80">Palette</label>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {PALETTES.map((p, i) => (
+          <div className="flex items-baseline justify-between">
+            <label className="text-sm font-medium text-ink/80">Signature ink</label>
+            {isCustomized && (
               <button
-                key={p.name}
                 type="button"
                 onClick={() => {
-                  setPaletteIdx(i);
                   setCustomAccent(null);
                   setCustomBg(null);
                 }}
-                title={p.name}
-                className={`h-9 w-9 rounded-full border-2 transition ${
-                  paletteIdx === i && !customAccent && !customBg ? "border-ink" : "border-transparent"
-                }`}
-                style={{ background: `linear-gradient(135deg, ${p.bg} 50%, ${p.accent} 50%)` }}
-              />
-            ))}
+                className="text-xs text-ink/40 underline hover:text-accent"
+              >
+                Back to generated
+              </button>
+            )}
           </div>
-          <div className="mt-3 flex items-center gap-4 text-xs text-ink/60">
+          <p className="mt-1 text-xs text-ink/50">
+            Every event name finds its own ink — {isCustomized ? "you're overriding it below." : "this one's yours."}
+          </p>
+
+          <div className="mt-3 flex items-center gap-4">
+            <div
+              className="h-16 w-16 shrink-0 rounded-full border-2 border-ink/10 shadow-sm"
+              style={{ background: `conic-gradient(${accentColor} 0deg 180deg, ${bgColor} 180deg 360deg)` }}
+            />
+            <div className="flex-1">
+              <p className="font-display text-lg font-semibold text-ink">
+                {isCustomized ? "Custom ink" : generatedInk.name}
+              </p>
+              <button
+                type="button"
+                onClick={() => setInkNonce((n) => n + 1)}
+                className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-3 py-1 text-xs font-medium text-ink/70 transition hover:border-accent hover:text-accent"
+              >
+                <span aria-hidden>✨</span> Shuffle for another take
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-4 text-xs text-ink/60">
             <label className="flex items-center gap-2">
               Accent
               <input

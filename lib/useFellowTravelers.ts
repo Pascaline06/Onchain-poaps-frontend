@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAccount, usePublicClient, useReadContract, useReadContracts } from "wagmi";
 import { POAP_ABI } from "./abi";
 import { contractAddress } from "./contract";
-import { fetchMintLogsForEvent } from "./mintLogs";
+import { fetchMintLogsForEvents } from "./mintLogs";
 
 export interface Traveler {
   address: `0x${string}`;
@@ -116,19 +116,16 @@ export function useFellowTravelers(): FellowTravelersResult {
 
     (async () => {
       try {
-        // Every held event's log history is fetched concurrently rather
-        // than one event at a time — with the concurrency inside
-        // fetchMintLogsForEvent itself for the block-range chunks of each
-        // individual event, this is concurrency nested inside concurrency,
-        // which is most of why this used to feel slow.
-        const perEventResults = await Promise.all(
-          myEventIds.map((eventId) => fetchMintLogsForEvent(publicClient, contractAddress(chainId), eventId))
-        );
+        // One shared queue and concurrency limit across every event this
+        // wallet holds — not a separate pool per event, which is what
+        // multiplied into "over rate limit" errors against a free public
+        // RPC in practice.
+        const perEventResults = await fetchMintLogsForEvents(publicClient, contractAddress(chainId), myEventIds);
         if (cancelled) return;
 
         const overlapByAddress = new Map<string, Set<string>>(); // lowercase address -> set of eventId strings
-        myEventIds.forEach((eventId, i) => {
-          for (const { recipient } of perEventResults[i]) {
+        myEventIds.forEach((eventId) => {
+          for (const { recipient } of perEventResults.get(eventId.toString()) ?? []) {
             if (recipient.toLowerCase() === address.toLowerCase()) continue;
             const key = recipient.toLowerCase();
             if (!overlapByAddress.has(key)) overlapByAddress.set(key, new Set());

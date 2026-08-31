@@ -124,7 +124,7 @@ export const POAP_ABI = [
       { name: "eventId", type: "uint256", indexed: true },
       { name: "recipient", type: "address", indexed: true },
     ],
-  },
+  } as const,
   {
     type: "event", name: "AllowlistUpdated", anonymous: false,
     inputs: [
@@ -140,3 +140,8 @@ export const POAP_ABI = [
     ],
   },
 ] as const;
+
+export const NEW_MINT_EVENT = POAP_ABI.find(
+  (item): item is Extract<(typeof POAP_ABI)[number], { type: "event"; name: "NewMint" }> =>
+    item.type === "event" && item.name === "NewMint"
+)!;

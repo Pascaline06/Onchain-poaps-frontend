@@ -29,7 +29,12 @@ export default function TravelersPage() {
             <p className="text-ink/60">Connect a wallet to find your fellow travelers.</p>
             <ConnectWallet />
           </div>
-        ) : myEventIds.length === 0 && status !== "loading" ? (
+        ) : status === "checking-holdings" ? (
+          <div className="card flex flex-col items-center gap-3 p-10 text-center">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            <p className="text-sm text-ink/50">Checking what you've minted on this contract…</p>
+          </div>
+        ) : status === "no-holdings" ? (
           <div className="card flex flex-col items-center gap-2 p-10 text-center">
             <p className="text-ink/60">
               You haven't minted anything on this contract yet — travelers show up once you have.
@@ -38,7 +43,7 @@ export default function TravelersPage() {
               Go mint or create one
             </a>
           </div>
-        ) : status === "loading" ? (
+        ) : status === "loading-travelers" ? (
           <div className="card flex flex-col items-center gap-3 p-10 text-center">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent border-t-transparent" />
             <p className="text-sm text-ink/50">

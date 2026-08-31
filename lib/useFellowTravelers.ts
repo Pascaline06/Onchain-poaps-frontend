@@ -10,8 +10,20 @@ export interface Traveler {
   sharedEventIds: bigint[];
 }
 
+// "checking-holdings" and "no-holdings" are deliberately separate states —
+// collapsing them into a single "not loading yet" state was the exact bug
+// that made the page briefly claim "you haven't minted anything" while it
+// was still waiting on the very first read to come back, before flipping
+// to the real loading state a moment later.
+export type FellowTravelersStatus =
+  | "checking-holdings"
+  | "no-holdings"
+  | "loading-travelers"
+  | "ready"
+  | "error";
+
 export interface FellowTravelersResult {
-  status: "idle" | "loading" | "ready" | "error";
+  status: FellowTravelersStatus;
   error: string | null;
   myEventIds: bigint[];
   eventNames: Map<string, string>;
@@ -31,10 +43,10 @@ export function useFellowTravelers(): FellowTravelersResult {
   const { address, chainId } = useAccount();
   const publicClient = usePublicClient();
   const [logResult, setLogResult] = useState<{
-    status: "idle" | "loading" | "ready" | "error";
+    status: "loading-travelers" | "ready" | "error";
     error: string | null;
     travelers: Traveler[];
-  }>({ status: "idle", error: null, travelers: [] });
+  }>({ status: "loading-travelers", error: null, travelers: [] });
 
   const { data: total } = useReadContract({
     address: chainId ? contractAddress(chainId) : undefined,
@@ -60,6 +72,11 @@ export function useFellowTravelers(): FellowTravelersResult {
         : [],
     query: { enabled: Boolean(address && chainId && allIds.length > 0) },
   });
+
+  // Distinguishes "the hasClaimed batch hasn't resolved yet" from
+  // "it resolved and found nothing" — those are different states even
+  // though both can momentarily look like an empty myEventIds array.
+  const holdingsChecked = claimedResults !== undefined;
 
   const myEventIds = useMemo(() => {
     if (!claimedResults) return [];
@@ -91,26 +108,34 @@ export function useFellowTravelers(): FellowTravelersResult {
 
   useEffect(() => {
     if (!publicClient || !address || !chainId || myEventIds.length === 0) {
-      setLogResult({ status: "idle", error: null, travelers: [] });
       return;
     }
 
     let cancelled = false;
-    setLogResult({ status: "loading", error: null, travelers: [] });
+    setLogResult({ status: "loading-travelers", error: null, travelers: [] });
 
     (async () => {
       try {
+        // Every held event's log history is fetched concurrently rather
+        // than one event at a time — with the concurrency inside
+        // fetchMintLogsForEvent itself for the block-range chunks of each
+        // individual event, this is concurrency nested inside concurrency,
+        // which is most of why this used to feel slow.
+        const perEventResults = await Promise.all(
+          myEventIds.map((eventId) => fetchMintLogsForEvent(publicClient, contractAddress(chainId), eventId))
+        );
+        if (cancelled) return;
+
         const overlapByAddress = new Map<string, Set<string>>(); // lowercase address -> set of eventId strings
-        for (const eventId of myEventIds) {
-          const recipients = await fetchMintLogsForEvent(publicClient, contractAddress(chainId), eventId);
-          for (const { recipient } of recipients) {
+        myEventIds.forEach((eventId, i) => {
+          for (const { recipient } of perEventResults[i]) {
             if (recipient.toLowerCase() === address.toLowerCase()) continue;
             const key = recipient.toLowerCase();
             if (!overlapByAddress.has(key)) overlapByAddress.set(key, new Set());
             overlapByAddress.get(key)!.add(eventId.toString());
           }
-        }
-        if (cancelled) return;
+        });
+
         const travelers: Traveler[] = Array.from(overlapByAddress.entries())
           .map(([addr, eventIdSet]) => ({
             address: addr as `0x${string}`,
@@ -133,8 +158,14 @@ export function useFellowTravelers(): FellowTravelersResult {
     };
   }, [publicClient, address, chainId, myEventIds]);
 
+  const status: FellowTravelersStatus = !holdingsChecked
+    ? "checking-holdings"
+    : myEventIds.length === 0
+    ? "no-holdings"
+    : logResult.status;
+
   return {
-    status: logResult.status,
+    status,
     error: logResult.error,
     myEventIds,
     eventNames,

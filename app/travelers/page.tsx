@@ -8,7 +8,7 @@ import { useFellowTravelers } from "@/lib/useFellowTravelers";
 
 export default function TravelersPage() {
   const { address } = useAccount();
-  const { status, error, myEventIds, eventNames, travelers } = useFellowTravelers();
+  const { status, error, incomplete, myEventIds, eventNames, travelers } = useFellowTravelers();
 
   return (
     <main>
@@ -44,19 +44,30 @@ export default function TravelersPage() {
             </a>
           </div>
         ) : status === "loading-travelers" ? (
-          <div className="card flex flex-col items-center gap-3 p-10 text-center">
-            <div className="h-10 w-10 animate-spin rounded-full border-2 border-accent border-t-transparent" />
-            <p className="text-sm text-ink/50">
-              Reading mint history for {myEventIds.length} event{myEventIds.length === 1 ? "" : "s"} you hold —
-              this walks real onchain logs, not a cached index, so it can take a moment.
-            </p>
+          <div className="space-y-6">
+            <div className="card flex flex-col items-center gap-3 p-6 text-center">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+              <p className="text-sm text-ink/50">
+                Reading mint history for {myEventIds.length} event{myEventIds.length === 1 ? "" : "s"} you hold — this
+                walks real onchain logs, not a cached index, so results appear as they're found rather than all at once.
+              </p>
+            </div>
+            {travelers.length > 0 && <TravelerConstellation travelers={travelers} eventNames={eventNames} />}
           </div>
         ) : status === "error" ? (
           <div className="card p-6 text-center text-sm text-red-600">
             {error ?? "Couldn't read mint history from the chain."}
           </div>
         ) : (
-          <TravelerConstellation travelers={travelers} eventNames={eventNames} />
+          <div>
+            {incomplete && (
+              <p className="mb-4 text-center text-xs text-ink/40">
+                The RPC was slow to respond, so this may be missing a bit of older history — what's shown below is
+                everything found in time.
+              </p>
+            )}
+            <TravelerConstellation travelers={travelers} eventNames={eventNames} />
+          </div>
         )}
       </div>
       <Footer />

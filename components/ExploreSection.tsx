@@ -137,7 +137,7 @@ export function ExploreSection() {
           >
             ← Previous
           </button>
-          <span className="font-mono text-xs text-ink/50">
+          <span className="rounded-full bg-ink/10 px-4 py-2 font-mono text-sm font-bold text-ink">
             Page {clampedPage + 1} of {pageCount}
           </span>
           <button

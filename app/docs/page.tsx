@@ -42,6 +42,17 @@ export default function DocsPage() {
             </p>
           </div>
 
+          <nav className="card p-4 md:hidden">
+            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink/50">On this page</p>
+            <div className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm">
+              {sections.map((s) => (
+                <a key={s.id} href={`#${s.id}`} className="text-ink/70 hover:text-accent">
+                  {s.title}
+                </a>
+              ))}
+            </div>
+          </nav>
+
           <section id="creating">
             <h2 className="font-display text-xl font-semibold">Creating a POAP</h2>
             <p>

@@ -2,6 +2,7 @@ import type { usePublicClient } from "wagmi";
 import { NEW_MINT_EVENT } from "./abi";
 
 type WagmiPublicClient = NonNullable<ReturnType<typeof usePublicClient>>;
+type MintLog = { recipient: `0x${string}`; blockNumber: bigint };
 
 function isRateLimitError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
@@ -12,43 +13,55 @@ async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export interface FetchLogsResult {
+  results: Map<string, MintLog[]>;
+  incomplete: boolean; // true if the time or task budget ran out before every window was read
+}
+
 /**
  * Fetches every NewMint log for a set of events, sharing ONE global
  * concurrency limit and ONE global request queue across all of them.
  *
- * The first version of this gave each event its own independent worker
- * pool — correct in isolation, but calling it once per event meant the
- * pools stacked: a wallet holding 4 events could produce up to 4× the
- * intended concurrency all hitting the RPC at once, which is exactly what
- * tripped "over rate limit" errors in practice, on both this feature and
- * unrelated reads elsewhere in the app sharing the same endpoint.
+ * Two hard bounds exist specifically because an earlier version of this
+ * had neither, and it produced a real six-minute hang in practice: a
+ * single window that keeps getting rejected can cascade into splitting
+ * again and again, and each of those splits can independently need retries
+ * with growing backoff — with nothing capping total requests or total
+ * time, that cascade has no ceiling. Now there is one: past either bound,
+ * fetching stops and returns whatever was found so far, marked incomplete,
+ * rather than continuing indefinitely. A page that says "here's what I
+ * found in 12 seconds, might be missing a little" is a working feature; a
+ * spinner with no ceiling is not, no matter how correct the logic under it
+ * eventually turns out to be.
  *
- * There are two genuinely different failure modes here, and they need
- * opposite responses: a block-range rejection means "this window is too
- * big, split it into two smaller ones," while a rate-limit rejection means
- * "this exact window was fine, just wait and ask again" — splitting on a
- * rate-limit error would only send more requests and make the throttling
- * worse, not better.
+ * onProgress, if given, is called after every completed window so the
+ * caller can show results as they arrive instead of an all-or-nothing
+ * wait for full completion.
  */
 export async function fetchMintLogsForEvents(
   publicClient: WagmiPublicClient,
   contractAddress: `0x${string}`,
   eventIds: bigint[],
-  opts?: { lookbackBlocks?: bigint; chunkSize?: bigint; concurrency?: number }
-): Promise<Map<string, { recipient: `0x${string}`; blockNumber: bigint }[]>> {
-  const results = new Map<string, { recipient: `0x${string}`; blockNumber: bigint }[]>();
+  opts?: {
+    lookbackBlocks?: bigint;
+    chunkSize?: bigint;
+    concurrency?: number;
+    timeBudgetMs?: number;
+    maxTasks?: number;
+    onProgress?: (partial: Map<string, MintLog[]>) => void;
+  }
+): Promise<FetchLogsResult> {
+  const results = new Map<string, MintLog[]>();
   eventIds.forEach((id) => results.set(id.toString(), []));
-  if (eventIds.length === 0) return results;
+  if (eventIds.length === 0) return { results, incomplete: false };
 
   const latest = await publicClient.getBlockNumber();
-  const lookback = opts?.lookbackBlocks ?? 2_000_000n; // ~46 days at a 2s block time — generous for a contract only a few weeks old
+  const lookback = opts?.lookbackBlocks ?? 1_000_000n; // ~23 days at a 2s block time — a contract only a few weeks old, tightened from 2M for speed
   const fromFloor = latest > lookback ? latest - lookback : 0n;
-  // Large chunks on purpose: the failure mode actually observed in
-  // production was a request-rate limit, not a block-range limit, so
-  // fewer/bigger requests are strictly better here. Range-too-large is
-  // still handled below as a fallback for RPCs that do cap it.
   const chunkSize = opts?.chunkSize ?? 200_000n;
-  const concurrency = opts?.concurrency ?? 2; // conservative on purpose — this is a shared free public endpoint, not a dedicated one
+  const concurrency = opts?.concurrency ?? 3;
+  const timeBudgetMs = opts?.timeBudgetMs ?? 12_000;
+  const maxTasks = opts?.maxTasks ?? 120;
 
   type Task = { eventId: bigint; from: bigint; to: bigint; attempt: number };
   const queue: Task[] = [];
@@ -59,9 +72,25 @@ export async function fetchMintLogsForEvents(
     }
   }
 
-  const MAX_RATE_LIMIT_RETRIES = 5;
+  const startedAt = Date.now();
+  let tasksProcessed = 0;
+  let incomplete = false;
+  const MAX_RATE_LIMIT_RETRIES = 3;
+
+  function withinBudget(): boolean {
+    if (Date.now() - startedAt > timeBudgetMs) {
+      incomplete = true;
+      return false;
+    }
+    if (tasksProcessed >= maxTasks) {
+      incomplete = true;
+      return false;
+    }
+    return true;
+  }
 
   async function processTask(t: Task): Promise<void> {
+    tasksProcessed++;
     try {
       const logs = await publicClient.getLogs({
         address: contractAddress,
@@ -75,20 +104,22 @@ export async function fetchMintLogsForEvents(
         const recipient = log.args.recipient;
         if (recipient) bucket.push({ recipient, blockNumber: log.blockNumber ?? 0n });
       }
+      opts?.onProgress?.(results);
     } catch (err) {
+      if (!withinBudget()) return; // don't bother retrying/splitting once we're out of budget anyway
       if (isRateLimitError(err)) {
-        if (t.attempt >= MAX_RATE_LIMIT_RETRIES) throw err;
-        // Exponential backoff on the exact same window — re-requesting it
-        // is fine, the window itself wasn't the problem, the request rate
-        // was. 600ms, 1.2s, 2.4s, 4.8s, 9.6s.
-        await sleep(600 * 2 ** t.attempt);
+        if (t.attempt >= MAX_RATE_LIMIT_RETRIES) return; // give up on this one window rather than throwing away everything else already found
+        // Exponential backoff on the exact same window, capped low enough
+        // that one stubborn window can't eat the whole time budget by
+        // itself: 500ms, 1s, 2s.
+        await sleep(500 * 2 ** t.attempt);
         queue.push({ ...t, attempt: t.attempt + 1 });
         return;
       }
       // Not a rate-limit error — assume the block range itself was
       // rejected as too large and split it, same as before.
       const span = t.to - t.from + 1n;
-      if (span <= 250n) throw err;
+      if (span <= 250n) return; // too small to usefully split further; skip rather than throw
       const mid = t.from + span / 2n;
       queue.push({ eventId: t.eventId, from: t.from, to: mid - 1n, attempt: 0 });
       queue.push({ eventId: t.eventId, from: mid, to: t.to, attempt: 0 });
@@ -96,7 +127,7 @@ export async function fetchMintLogsForEvents(
   }
 
   async function worker(): Promise<void> {
-    while (queue.length > 0) {
+    while (queue.length > 0 && withinBudget()) {
       const t = queue.shift();
       if (!t) return;
       await processTask(t);
@@ -105,5 +136,5 @@ export async function fetchMintLogsForEvents(
 
   await Promise.all(Array.from({ length: Math.min(concurrency, Math.max(1, queue.length)) }, () => worker()));
 
-  return results;
+  return { results, incomplete: incomplete || queue.length > 0 };
 }

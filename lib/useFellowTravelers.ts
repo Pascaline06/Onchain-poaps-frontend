@@ -25,9 +25,32 @@ export type FellowTravelersStatus =
 export interface FellowTravelersResult {
   status: FellowTravelersStatus;
   error: string | null;
+  incomplete: boolean; // true if the fetch hit its time/task budget before reading every window of history
   myEventIds: bigint[];
   eventNames: Map<string, string>;
   travelers: Traveler[]; // sorted by sharedEventIds.length descending
+}
+
+function aggregateOverlap(
+  myEventIds: bigint[],
+  myAddress: `0x${string}`,
+  perEventResults: Map<string, { recipient: `0x${string}`; blockNumber: bigint }[]>
+): Traveler[] {
+  const overlapByAddress = new Map<string, Set<string>>(); // lowercase address -> set of eventId strings
+  myEventIds.forEach((eventId) => {
+    for (const { recipient } of perEventResults.get(eventId.toString()) ?? []) {
+      if (recipient.toLowerCase() === myAddress.toLowerCase()) continue;
+      const key = recipient.toLowerCase();
+      if (!overlapByAddress.has(key)) overlapByAddress.set(key, new Set());
+      overlapByAddress.get(key)!.add(eventId.toString());
+    }
+  });
+  return Array.from(overlapByAddress.entries())
+    .map(([addr, eventIdSet]) => ({
+      address: addr as `0x${string}`,
+      sharedEventIds: Array.from(eventIdSet).map(BigInt),
+    }))
+    .sort((a, b) => b.sharedEventIds.length - a.sharedEventIds.length);
 }
 
 /**
@@ -45,8 +68,9 @@ export function useFellowTravelers(): FellowTravelersResult {
   const [logResult, setLogResult] = useState<{
     status: "loading-travelers" | "ready" | "error";
     error: string | null;
+    incomplete: boolean;
     travelers: Traveler[];
-  }>({ status: "loading-travelers", error: null, travelers: [] });
+  }>({ status: "loading-travelers", error: null, incomplete: false, travelers: [] });
 
   const { data: total } = useReadContract({
     address: chainId ? contractAddress(chainId) : undefined,
@@ -112,39 +136,46 @@ export function useFellowTravelers(): FellowTravelersResult {
     }
 
     let cancelled = false;
-    setLogResult({ status: "loading-travelers", error: null, travelers: [] });
+    setLogResult({ status: "loading-travelers", error: null, incomplete: false, travelers: [] });
 
     (async () => {
       try {
         // One shared queue and concurrency limit across every event this
         // wallet holds — not a separate pool per event, which is what
         // multiplied into "over rate limit" errors against a free public
-        // RPC in practice.
-        const perEventResults = await fetchMintLogsForEvents(publicClient, contractAddress(chainId), myEventIds);
-        if (cancelled) return;
-
-        const overlapByAddress = new Map<string, Set<string>>(); // lowercase address -> set of eventId strings
-        myEventIds.forEach((eventId) => {
-          for (const { recipient } of perEventResults.get(eventId.toString()) ?? []) {
-            if (recipient.toLowerCase() === address.toLowerCase()) continue;
-            const key = recipient.toLowerCase();
-            if (!overlapByAddress.has(key)) overlapByAddress.set(key, new Set());
-            overlapByAddress.get(key)!.add(eventId.toString());
+        // RPC in practice. onProgress streams partial results into the UI
+        // as they arrive rather than making someone stare at a spinner
+        // until every last window has been read — a bounded worst case
+        // (see mintLogs.ts) means this always finishes, but showing
+        // progress along the way matters just as much as the ceiling does.
+        const { results: perEventResults, incomplete } = await fetchMintLogsForEvents(
+          publicClient,
+          contractAddress(chainId),
+          myEventIds,
+          {
+            onProgress: (partial) => {
+              if (cancelled) return;
+              setLogResult((prev) => ({
+                ...prev,
+                status: "loading-travelers",
+                travelers: aggregateOverlap(myEventIds, address, partial),
+              }));
+            },
           }
+        );
+        if (cancelled) return;
+        setLogResult({
+          status: "ready",
+          error: null,
+          incomplete,
+          travelers: aggregateOverlap(myEventIds, address, perEventResults),
         });
-
-        const travelers: Traveler[] = Array.from(overlapByAddress.entries())
-          .map(([addr, eventIdSet]) => ({
-            address: addr as `0x${string}`,
-            sharedEventIds: Array.from(eventIdSet).map(BigInt),
-          }))
-          .sort((a, b) => b.sharedEventIds.length - a.sharedEventIds.length);
-        setLogResult({ status: "ready", error: null, travelers });
       } catch (err) {
         if (cancelled) return;
         setLogResult({
           status: "error",
           error: err instanceof Error ? err.message : "Couldn't read mint history from the chain.",
+          incomplete: false,
           travelers: [],
         });
       }
@@ -164,6 +195,7 @@ export function useFellowTravelers(): FellowTravelersResult {
   return {
     status,
     error: logResult.error,
+    incomplete: logResult.incomplete,
     myEventIds,
     eventNames,
     travelers: logResult.travelers,

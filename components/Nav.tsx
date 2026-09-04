@@ -6,8 +6,8 @@ import { ThemeToggle } from "./ThemeToggle";
 
 const links = [
   ["/", "Home"],
-  ["/gallery", "Gallery"],
   ["/events", "Events"],
+  ["/gallery", "Gallery"],
   ["/travelers", "Travelers"],
   ["/organizer", "Organizer"],
   ["/docs", "Docs"],
@@ -16,23 +16,46 @@ const links = [
 export function Nav() {
   const [open, setOpen] = useState(false);
   return (
-    <nav className="sticky top-0 z-50 border-b border-ink/10 bg-paper/92 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3.5 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-sm font-black tracking-[-.02em] sm:text-base">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-[10px] font-black text-white shadow-[0_8px_24px_rgba(255,90,31,.28)]">OP</span>
+    <nav className="reference-nav">
+      <div className="reference-nav-inner">
+        <Link href="/" className="reference-brand" aria-label="Onchain POAPs home">
+          <span className="reference-brand-mark">i</span>
           <span>ONCHAIN POAPS</span>
         </Link>
-        <div className="hidden items-center gap-6 text-xs font-bold lg:flex">
-          {links.map(([href,label]) => <Link key={href} href={href} className="transition hover:text-accent">{label}</Link>)}
+
+        <div className="reference-nav-links">
+          {links.map(([href, label]) => (
+            <Link key={href} href={href}>{label}</Link>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="reference-nav-actions">
           <ThemeToggle />
-          <Link href="/register" className="hidden rounded-full border border-ink/25 px-4 py-2 text-xs font-bold transition hover:border-accent hover:text-accent sm:inline-flex">Create</Link>
-          <div className="hidden sm:block"><ConnectWallet /></div>
-          <button type="button" aria-label="Open navigation" aria-expanded={open} onClick={()=>setOpen(v=>!v)} className="flex h-9 w-9 items-center justify-center rounded-full border border-ink/20 text-lg font-bold lg:hidden">{open ? "×" : "☰"}</button>
+          <Link href="/register" className="reference-outline-btn reference-create-btn">Create</Link>
+          <div className="reference-wallet"><ConnectWallet /></div>
+          <button
+            type="button"
+            aria-label={open ? "Close navigation" : "Open navigation"}
+            aria-expanded={open}
+            onClick={() => setOpen(v => !v)}
+            className="reference-menu-btn"
+          >
+            {open ? "×" : "☰"}
+          </button>
         </div>
       </div>
-      {open && <div className="border-t border-ink/10 bg-paper px-4 py-4 lg:hidden"><div className="mx-auto grid max-w-7xl grid-cols-2 gap-2">{links.map(([href,label])=><Link key={href} href={href} onClick={()=>setOpen(false)} className="rounded-xl border border-ink/10 px-4 py-3 text-sm font-bold hover:border-accent hover:text-accent">{label}</Link>)}<Link href="/register" onClick={()=>setOpen(false)} className="rounded-xl bg-accent px-4 py-3 text-sm font-black text-white">Create POAP</Link><div className="flex items-center rounded-xl border border-ink/10 px-3"><ConnectWallet /></div></div></div>}
+
+      {open && (
+        <div className="reference-mobile-menu">
+          <div className="reference-mobile-menu-inner">
+            {links.map(([href, label]) => (
+              <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>
+            ))}
+            <Link href="/register" onClick={() => setOpen(false)} className="reference-mobile-accent">Create a POAP</Link>
+            <div className="reference-mobile-wallet"><ConnectWallet /></div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 }

@@ -1,30 +1,64 @@
 "use client";
 import Link from "next/link";
-import { useReadContract } from "wagmi";
+import { useReadContract, useAccount } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
-import { useAccount } from "wagmi";
 
 export function OnchainHero() {
   const { chainId: connected } = useAccount();
   const chainId = connected ?? DEFAULT_CHAIN.id;
   const { data: total } = useReadContract({ address: contractAddress(chainId), abi: POAP_ABI, functionName: "totalEvents" });
   const events = total === undefined ? "—" : String(Number(total) + 1);
+
   return (
-    <section className="relative overflow-hidden bg-[#050505] px-6 py-14 text-white sm:py-20">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 lg:grid-cols-[.9fr_1.1fr]">
-        <div className="relative z-10">
-          <span className="mb-6 inline-flex rounded-full border border-white/20 px-4 py-2 font-mono text-[10px] font-bold uppercase tracking-[.2em] text-white/70">PERMANENT PROOF OF ATTENDANCE</span>
-          <h1 className="max-w-xl text-5xl font-black leading-[.92] tracking-[-.045em] sm:text-7xl">Your Journey.<br/>Onchain<br/><span className="text-[#ff6b1a]">Forever.</span></h1>
-          <p className="mt-7 max-w-lg text-base font-medium leading-relaxed text-white/65 sm:text-lg">Create, collect and verify attendance records whose artwork and metadata live directly onchain. Your events become part of a permanent public history.</p>
-          <div className="mt-8 flex flex-wrap gap-3"><Link href="/register" className="rounded-xl bg-[#ff6b1a] px-6 py-3.5 font-bold text-white shadow-lg shadow-orange-950/30">Create a POAP</Link><Link href="/events" className="rounded-xl border border-white/25 px-6 py-3.5 font-bold text-white hover:bg-white/10">Explore Events</Link></div>
-          <div className="mt-12 grid max-w-xl grid-cols-3 gap-6 border-t border-white/10 pt-6"><div><div className="text-2xl font-black">{events}</div><div className="text-[10px] font-bold uppercase tracking-widest text-white/45">Events</div></div><div><div className="text-2xl font-black">100%</div><div className="text-[10px] font-bold uppercase tracking-widest text-white/45">Onchain</div></div><div><div className="text-2xl font-black">∞</div><div className="text-[10px] font-bold uppercase tracking-widest text-white/45">Persistence</div></div></div>
+    <section className="reference-hero">
+      <div className="reference-stars" aria-hidden="true">
+        <i className="star s1"/><i className="star s2"/><i className="star s3"/><i className="star s4"/><i className="star s5"/>
+      </div>
+      <div className="reference-hero-inner">
+        <div className="reference-hero-copy">
+          <p className="reference-kicker">PERMANENT PROOF OF ATTENDANCE</p>
+          <h1>Onchain POAPs</h1>
+          <h2>Proofs that stay with you.</h2>
+          <p className="reference-hero-description">
+            Create, distribute, mint and collect attendance proofs whose artwork and metadata live directly onchain. Built for real events, real communities and permanent ownership.
+          </p>
+          <div className="reference-feature-dots" aria-label="Onchain POAP highlights">
+            <span>Fully onchain</span>
+            <span>ERC-1155 on Base</span>
+            <span>Public, allowlist & signature minting</span>
+          </div>
+          <div className="reference-hero-actions">
+            <Link href="/register" className="reference-outline-btn reference-primary-action">CREATE</Link>
+            <Link href="/events" className="reference-outline-btn">EXPLORE</Link>
+          </div>
+          <div className="reference-hero-stats">
+            <div><strong>{events}</strong><span>EVENTS</span></div>
+            <div><strong>100%</strong><span>ONCHAIN</span></div>
+            <div><strong>∞</strong><span>PERMANENCE</span></div>
+          </div>
         </div>
-        <div className="hero-orbital relative min-h-[420px] overflow-hidden sm:min-h-[520px]">
-          <div className="hero-dot right-[32%] top-[10%] h-5 w-5"/><div className="hero-dot right-[22%] top-[2%] h-8 w-8"/><div className="hero-dot right-[45%] top-[23%] h-3 w-3"/><div className="hero-dot right-[13%] bottom-[16%] h-8 w-8"/>
-          {[1,2,3,4,5].map(i=><div key={i} className="hero-ribbon"/>)}
-          <div className="absolute bottom-8 left-12 rounded-full border border-white/10 bg-white/5 px-4 py-2 font-mono text-[10px] uppercase tracking-widest text-white/55 backdrop-blur">Base Sepolia · ERC-1155</div>
+
+        <div className="reference-art" aria-hidden="true">
+          <div className="reference-hatch" />
+          <div className="reference-capsule c1" />
+          <div className="reference-capsule c2" />
+          <div className="reference-capsule c3" />
+          <div className="reference-capsule c4" />
+          <div className="reference-capsule c5" />
+          <div className="reference-capsule c6" />
+          <div className="reference-orange-dot d1" />
+          <div className="reference-orange-dot d2" />
+          <div className="reference-orange-dot d3" />
+          <div className="reference-orange-ring" />
         </div>
+      </div>
+
+      <div className="reference-hero-footer">
+        <Link href="/docs">Docs</Link>
+        <a href={`https://sepolia.basescan.org/address/${contractAddress(DEFAULT_CHAIN.id)}`} target="_blank" rel="noreferrer">Contract</a>
+        <a href="https://github.com/Pascaline06/Onchain-poaps-frontend" target="_blank" rel="noreferrer">GitHub</a>
+        <span>Base Sepolia</span>
       </div>
     </section>
   );

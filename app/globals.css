@@ -885,3 +885,114 @@ body {
   .reference-dark-metrics > * { min-height: 70px; }
   .reference-mobile-feature-grid { grid-template-columns: 1fr; }
 }
+
+/* --- Onchain Journey Orbit: living attendance constellation --- */
+.journey-orbit-stage {
+  isolation: isolate;
+}
+
+.journey-orbit-anchor {
+  width: 0;
+  height: 0;
+}
+
+.journey-orbit-rotator {
+  animation: journey-orbit-spin var(--orbit-duration, 26s) linear infinite;
+  transform: rotate(var(--orbit-start, 0deg));
+  will-change: transform;
+}
+
+.journey-orbit-radius {
+  transform: translateX(var(--orbit-radius, 150px));
+}
+
+.journey-orbit-upright {
+  position: relative;
+  animation: journey-orbit-counterspin var(--orbit-duration, 26s) linear infinite;
+  transform: rotate(calc(-1 * var(--orbit-start, 0deg)));
+  will-change: transform;
+}
+
+.journey-orbit-node {
+  transform: translate(-50%, -50%);
+}
+
+.journey-orbit-halo {
+  animation: journey-halo-breathe 5s ease-in-out infinite;
+}
+
+.journey-orbit-halo-slow {
+  animation-duration: 7.5s;
+  animation-delay: -2.5s;
+}
+
+.journey-orbit-sweep {
+  background: conic-gradient(from 0deg, transparent 0 72%, rgba(255,100,31,.20) 80%, transparent 88% 100%);
+  -webkit-mask: radial-gradient(circle, transparent 0 48%, #000 49% 51%, transparent 52%);
+  mask: radial-gradient(circle, transparent 0 48%, #000 49% 51%, transparent 52%);
+  animation: journey-sweep 10s linear infinite;
+  opacity: .55;
+}
+
+.journey-core {
+  animation: journey-core-float 4.8s ease-in-out infinite;
+}
+
+.journey-core-ring {
+  position: absolute;
+  inset: -9px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255,100,31,.26);
+  animation: journey-core-pulse 2.8s ease-out infinite;
+}
+
+.journey-core-empty {
+  animation: journey-core-float 4.8s ease-in-out infinite;
+}
+
+@keyframes journey-orbit-spin {
+  from { transform: rotate(var(--orbit-start, 0deg)); }
+  to { transform: rotate(calc(var(--orbit-start, 0deg) + 360deg)); }
+}
+
+@keyframes journey-orbit-counterspin {
+  from { transform: rotate(calc(-1 * var(--orbit-start, 0deg))); }
+  to { transform: rotate(calc(-1 * var(--orbit-start, 0deg) - 360deg)); }
+}
+
+@keyframes journey-halo-breathe {
+  0%, 100% { opacity: .5; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.025); }
+}
+
+@keyframes journey-sweep {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes journey-core-float {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.035); }
+}
+
+@keyframes journey-core-pulse {
+  0% { transform: scale(.9); opacity: .8; }
+  70%, 100% { transform: scale(1.24); opacity: 0; }
+}
+
+@media (max-width: 640px) {
+  .journey-orbit-tooltip {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .journey-orbit-rotator,
+  .journey-orbit-upright,
+  .journey-orbit-halo,
+  .journey-orbit-sweep,
+  .journey-core,
+  .journey-core-ring,
+  .journey-core-empty {
+    animation: none !important;
+  }
+}

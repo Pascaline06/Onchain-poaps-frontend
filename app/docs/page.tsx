@@ -1,319 +1,305 @@
+import type { ReactNode } from "react";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/Footer";
 
 const sections = [
-  { id: "creating", title: "Creating a POAP" },
-  { id: "metadata", title: "POAP metadata" },
-  { id: "svg", title: "SVG requirements & optimization" },
-  { id: "soulbound", title: "Soulbound POAPs" },
-  { id: "public", title: "Public minting" },
-  { id: "allowlist", title: "Allowlists" },
-  { id: "proofs", title: "Generating allowlist proofs" },
-  { id: "signature", title: "Signature minting" },
-  { id: "qr", title: "QR-code distribution" },
-  { id: "permissions", title: "Creator permissions" },
-  { id: "deadlines", title: "Minting deadlines" },
-  { id: "restrictions", title: "Contract restrictions" },
-  { id: "verify", title: "Verifying a minted POAP" },
-  { id: "passport", title: "The Passport" },
-  { id: "boarding-pass", title: "The Boarding Pass" },
-  { id: "travelers", title: "Fellow Travelers" },
-  { id: "palette", title: "Generative-ink palettes" },
-];
+  ["overview", "How Onchain POAPs works"],
+  ["creating", "Creating a POAP"],
+  ["metadata", "Metadata & onchain artwork"],
+  ["svg", "SVG requirements & optimization"],
+  ["soulbound", "Soulbound vs transferable"],
+  ["public", "Public minting"],
+  ["allowlist", "Allowlists & Merkle proofs"],
+  ["signature", "Signature minting"],
+  ["qr", "QR distribution for live events"],
+  ["creator", "Creator permissions & deadlines"],
+  ["minting", "Minting & verification"],
+  ["gallery", "Gallery"],
+  ["passport", "Event Passport"],
+  ["travelers", "Traveler Network"],
+  ["orbit", "Journey Orbit"],
+  ["organizer", "Organizer Command Center"],
+  ["reputation", "Organizer reputation"],
+  ["proof", "POAP Proof Card"],
+  ["farcaster", "Farcaster Mini App"],
+  ["developer", "Developer & deployment notes"],
+] as const;
+
+function DocSection({id,title,children}:{id:string;title:string;children:ReactNode}) {
+  return <section id={id} className="docs-section scroll-mt-24"><h2>{title}</h2>{children}</section>;
+}
 
 export default function DocsPage() {
   return (
     <main>
       <Nav />
-      <div className="mx-auto flex max-w-5xl gap-10 px-6 py-12">
-        <aside className="hidden w-56 shrink-0 md:block">
-          <div className="sticky top-6 space-y-1 text-sm">
-            {sections.map((s) => (
-              <a key={s.id} href={`#${s.id}`} className="block text-ink/60 hover:text-accent">
-                {s.title}
-              </a>
-            ))}
-          </div>
+      <div className="docs-shell">
+        <aside className="docs-sidebar">
+          <p className="docs-sidebar-label">ON THIS PAGE</p>
+          {sections.map(([id,title]) => <a key={id} href={`#${id}`}>{title}</a>)}
         </aside>
 
-        <article className="prose max-w-none space-y-12">
-          <div>
-            <h1 className="font-display text-4xl font-bold tracking-tight">Docs</h1>
-            <p className="mt-2 text-lg text-ink/60">
-              Not a summary — every rule, limit, and deadline on this page matches <code>Poap.sol</code>
-              line for line. If something here turns out to be wrong, the contract is right and this page
-              needs fixing, not the other way around.
+        <article className="docs-article">
+          <header className="docs-hero">
+            <p className="eyebrow text-accent">ONCHAIN POAPS DOCUMENTATION</p>
+            <h1>Everything you need to create, distribute, mint and verify POAPs.</h1>
+            <p>
+              This guide explains the protocol in plain language for event organizers, attendees and developers.
+              The smart contract remains the source of truth; the frontend is designed to expose its existing
+              functionality without changing the contract.
             </p>
-          </div>
+          </header>
 
-          <nav className="card p-4 md:hidden">
-            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink/50">On this page</p>
-            <div className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm">
-              {sections.map((s) => (
-                <a key={s.id} href={`#${s.id}`} className="text-ink/70 hover:text-accent">
-                  {s.title}
-                </a>
-              ))}
-            </div>
+          <nav className="docs-mobile-index">
+            {sections.map(([id,title]) => <a key={id} href={`#${id}`}>{title}</a>)}
           </nav>
 
-          <section id="creating">
-            <h2 className="font-display text-xl font-semibold">Creating a POAP</h2>
+          <DocSection id="overview" title="How Onchain POAPs works">
             <p>
-              Registering costs one onchain transaction and requires: a name (1–128 characters), an SVG
-              image, and optionally a description (≤512 chars), location (≤128 chars), event date, and
-              external URL (≤128 chars). You also choose whether the POAP is soulbound and whether
-              public minting starts open. The transaction assigns you a new, permanent event ID and
-              makes you that event's creator — a role that matters for the next 30–37 days (see
-              Deadlines below).
+              Onchain POAPs is an ERC-1155 attendance system on Base. An organizer registers an event and its SVG
+              artwork, chooses how people may claim it, and receives a permanent event ID. Attendees then mint a
+              token using one of the enabled distribution methods. The artwork and metadata are read from the
+              contract, so the POAP can be independently inspected without relying on a traditional image server.
             </p>
-          </section>
+            <div className="docs-callout"><strong>The basic flow:</strong> Register → Configure distribution → Mint → Verify → Collect in your Passport.</div>
+          </DocSection>
 
-          <section id="metadata">
-            <h2 className="font-display text-xl font-semibold">POAP metadata</h2>
+          <DocSection id="creating" title="Creating a POAP">
             <p>
-              There is no IPFS pin, no metadata server, and nothing that can go offline. The contract's
-              <code> uri(eventId)</code> function builds a complete ERC-1155 metadata JSON on the fly —
-              name, description, image, external URL, and attributes (Event, Location, Date, EventId,
-              Multichain EventId, Creator, Soulbound) — and returns it Base64-encoded as a
-              <code> data:application/json;base64,...</code> URI. Marketplaces and wallets decode this
-              directly; nothing needs to be fetched from anywhere else.
+              Open <strong>Create</strong> and connect the wallet that should own the organizer permissions. The
+              registration form supports the contract's event name, description, date, location, external project
+              URL, SVG artwork, allowlist root, soulbound setting and public-mint setting.
             </p>
-          </section>
+            <ol>
+              <li>Enter the event name and optional descriptive metadata.</li>
+              <li>Upload or paste a valid SVG. The app previews it before you register.</li>
+              <li>Choose whether the token should be soulbound or transferable.</li>
+              <li>Choose whether public minting starts open.</li>
+              <li>If you already have a Merkle root, add it during registration; otherwise configure an allowlist later from Manage.</li>
+              <li>Review the complete event preview and confirm the wallet transaction.</li>
+            </ol>
+            <p>After confirmation, the event receives an onchain event ID and the registering wallet becomes its creator.</p>
+          </DocSection>
 
-          <section id="svg">
-            <h2 className="font-display text-xl font-semibold">SVG requirements & optimization</h2>
+          <DocSection id="metadata" title="Metadata & onchain artwork">
             <p>
-              Your artwork must be a valid SVG string. It gets Base64-encoded and written onchain via
-              SSTORE2 — you pay gas roughly proportional to its byte size, once, at registration. The
-              registration form runs your SVG through SVGO automatically (multipass, default preset,
-              with <code>viewBox</code> preserved so it stays responsive) and shows you the size
-              reduction before you submit. You can also optimize manually first at{" "}
-              <a className="text-accent2 underline" href="https://jakearchibald.github.io/svgomg/" target="_blank" rel="noreferrer">
-                SVGOMG
-              </a>{" "}
-              if you want more control over the settings.
+              Each event exposes an ERC-1155 token URI through the contract's <code>uri(eventId)</code> function.
+              The frontend decodes that URI to display the original event artwork and metadata in Events, Gallery,
+              Passport, Proof and Organizer views. Existing event artwork is never replaced by generic frontend art.
             </p>
-          </section>
+            <p>
+              This is an important distinction: the visual identity you register for an event remains the artwork
+              users see throughout the product.
+            </p>
+          </DocSection>
 
-          <section id="soulbound">
-            <h2 className="font-display text-xl font-semibold">Soulbound POAPs</h2>
+          <DocSection id="svg" title="SVG requirements & optimization">
             <p>
-              A soulbound POAP can be minted and burned, but never transferred between wallets — the
-              contract enforces this at the token-transfer level, not just in the UI, by reverting any
-              transfer where both <code>from</code> and <code>to</code> are non-zero addresses. This is
-              the right default for attendance proof: it should mean "this wallet was there," not "this
-              wallet currently holds a token someone else earned." Turn it off only if you actually want
-              a tradeable collectible.
+              Registration expects SVG artwork. Because the SVG is stored onchain, smaller files generally mean a
+              more efficient registration transaction. The Create flow optimizes SVGs with SVGO before submission
+              and shows the result so you can verify that the artwork still looks correct.
             </p>
-          </section>
+            <p>
+              Keep unnecessary metadata, hidden layers and editor-specific markup out of the SVG. Preserve a
+              <code>viewBox</code> so the artwork scales correctly across the gallery, proof card and mobile Mini App.
+            </p>
+          </DocSection>
 
-          <section id="public">
-            <h2 className="font-display text-xl font-semibold">Public minting</h2>
+          <DocSection id="soulbound" title="Soulbound vs transferable">
             <p>
-              When enabled, any wallet can call <code>mint(eventId)</code> and receive exactly one POAP
-              — the contract tracks claims per address per event and reverts a second attempt. You can
-              open or close public minting at any time within the 30-day creator window; after that, the
-              status is frozen wherever you last left it.
+              A <strong>soulbound</strong> POAP is meant to represent attendance tied to the wallet that earned it.
+              It can be minted and burned, but not transferred between normal wallet addresses. A transferable POAP
+              behaves more like a collectible and may move between wallets.
             </p>
-          </section>
+            <div className="docs-callout"><strong>Practical rule:</strong> use soulbound when you want the token to mean “this wallet attended.” Use transferable only when movement between wallets is intentional.</div>
+          </DocSection>
 
-          <section id="allowlist">
-            <h2 className="font-display text-xl font-semibold">Allowlists</h2>
+          <DocSection id="public" title="Public minting">
             <p>
-              An allowlist restricts minting to a specific, pre-defined set of addresses without storing
-              that whole list onchain (which would be expensive and fully public). Instead, the contract
-              stores one 32-byte "Merkle root" that represents the entire list, and each eligible address
-              mints by submitting a "proof" — a short array of hashes specific to their address — that
-              the contract checks against that root.
+              Public minting is the simplest distribution method. When it is enabled, any eligible wallet may call
+              <code>mint(eventId)</code>. The event page makes the current state visible and the creator can open or
+              close public minting from the Manage page while the contract's creator window is still active.
             </p>
-            <p>
-              The tradeoff to understand: <strong>you can only set the allowlist root once per event,
-              and only within 30 days of registering it.</strong> There's no "add one more person"
-              afterward — if your list changes, either mint directly to stragglers with the creator
-              airdrop tool, or register a new event for a second round.
-            </p>
-          </section>
+            <p>Use it for open meetups, public conferences and community events where no pre-approval is needed.</p>
+          </DocSection>
 
-          <section id="proofs">
-            <h2 className="font-display text-xl font-semibold">Generating allowlist proofs</h2>
+          <DocSection id="allowlist" title="Allowlists & Merkle proofs">
             <p>
-              On the Manage page for your POAP, paste your recipient addresses (one per line, or
-              comma-separated) into the Allowlist tool and click "Build allowlist." Everything happens
-              in your browser — addresses are de-duplicated and checksummed, a Merkle tree is built
-              locally, and you get a preview of the resulting root plus a downloadable{" "}
-              <code>proofs.json</code> mapping every address to its own proof. Only when you're satisfied
-              do you click "Set allowlist root," which is the one irreversible onchain step.
+              An allowlist is for a known set of recipients. Instead of putting every address onchain, the app builds
+              a Merkle tree in the browser and stores only its root in the contract. Each recipient uses a Merkle proof
+              to show that their address belongs to the approved list.
             </p>
+            <ol>
+              <li>Open the creator's <strong>Manage</strong> page.</li>
+              <li>Paste recipient addresses, one per line or comma-separated.</li>
+              <li>Build the allowlist. The tool validates and de-duplicates the addresses.</li>
+              <li>Review the generated root and download the proof data.</li>
+              <li>Submit the root onchain only when the list is final.</li>
+              <li>Give each attendee the proof associated with their own address.</li>
+            </ol>
             <p>
-              Distribute <code>proofs.json</code> to recipients however suits your event — email, a
-              shared sheet, or a simple lookup page — so each person can find their own entry and paste
-              their proof into the mint page's allowlist box.
+              Eligible attendees mint through <code>allowlistMint(eventId, proof)</code>. The app hides the Merkle-tree
+              complexity behind a guided workflow so an organizer can go from “I have a list of wallets” to a working
+              allowlist without manually calculating hashes.
             </p>
-            <p>
-              Prefer scripting it? <code>scripts/generate-allowlist.mjs</code> in this repo does the same
-              thing from the command line against a CSV of addresses, useful for automating distribution
-              outside the browser.
-            </p>
-          </section>
+          </DocSection>
 
-          <section id="signature">
-            <h2 className="font-display text-xl font-semibold">Signature minting</h2>
+          <DocSection id="signature" title="Signature minting">
             <p>
-              A signature mint lets you authorize minting for a wallet you didn't know about in advance
-              — no pre-built list required. You sign a message committing to
-              (eventId, chainId, recipient address) with your creator wallet; the recipient submits that
-              signature alongside their own mint call, and the contract recovers the signer and checks
-              it matches you.
+              Signature minting is useful when the organizer does not know every attendee in advance. The creator
+              authorizes a recipient offchain by signing the event/recipient payload, and the recipient submits that
+              signature with <code>mintWithSignature</code>.
             </p>
             <p>
-              This is available for 37 days after registration — the same 30-day creator window plus a
-              7-day grace period, specifically so signatures you handed out near the deadline don't
-              become worthless the moment the window closes.
+              This is especially useful at live events because it avoids publishing a fully open mint while still
+              giving specific attendees a claim path. The Manage interface explains the signature window and generates
+              the link needed by the recipient.
             </p>
-          </section>
+          </DocSection>
 
-          <section id="qr">
-            <h2 className="font-display text-xl font-semibold">QR-code distribution</h2>
+          <DocSection id="qr" title="QR distribution for live events">
             <p>
-              The Manage page's signature tool generates a QR code for every signature you create. Each
-              QR encodes a link of the form <code>/event/[id]?sig=0x...&for=0xRecipient</code>; opening
-              it takes the attendee straight to the mint page with that signature ready to submit. Print
-              the QR on a poster, badge, or slide at your event — each code only works for the one wallet
-              it was generated for, so there's no risk of someone else scanning a stranger's badge and
-              minting in their place.
+              The signature workflow can turn a prepared mint link into a QR code. Put that QR on a screen, badge,
+              poster or check-in desk. Scanning it opens the event mint page with the signature data already supplied,
+              reducing the number of steps an attendee must perform on-site.
             </p>
-          </section>
-
-          <section id="permissions">
-            <h2 className="font-display text-xl font-semibold">Creator permissions</h2>
             <p>
-              Only the address that registered an event can: open or close public minting, set the
-              allowlist root, generate valid signatures for it, and directly airdrop it to a list. There
-              is no admin override and no way to transfer creator status — it's fixed to the registering
-              address for the life of the event.
+              The dedicated <strong>QR Kiosk</strong> view gives organizers a cleaner event-day experience than using
+              the full dashboard on a public display.
             </p>
-          </section>
+          </DocSection>
 
-          <section id="deadlines">
-            <h2 className="font-display text-xl font-semibold">Minting deadlines</h2>
-            <ul className="list-disc space-y-1 pl-5">
-              <li><strong>0–30 days after registration:</strong> creator can toggle public minting, set the allowlist root (once), and directly airdrop via creator mint.</li>
-              <li><strong>0–37 days after registration:</strong> signature mints remain valid (30 days + 7-day grace).</li>
-              <li><strong>After 30 days:</strong> public-mint status and allowlist root are frozen wherever they were left; whatever was open stays open, whatever was closed stays closed.</li>
-              <li><strong>Public and allowlist minting themselves have no expiry</strong> — if public minting is open, it stays mintable indefinitely unless the creator closes it before the 30-day mark.</li>
+          <DocSection id="creator" title="Creator permissions & deadlines">
+            <p>
+              The wallet that registers an event is the creator. Creator-only actions include changing public-mint
+              status, configuring the allowlist within the contract's allowed window, generating valid signature
+              authorizations and using creator mint/airdrop flows.
+            </p>
+            <ul>
+              <li><strong>Creator-management window:</strong> the contract exposes a creator timelock used by the management UI.</li>
+              <li><strong>Allowlist root:</strong> treat it as a one-time configuration and verify the list before submitting it.</li>
+              <li><strong>Signature minting:</strong> the UI shows its separate expiration window and countdown.</li>
+              <li><strong>One claim per wallet per event:</strong> claim state is checked onchain with <code>hasClaimed</code>.</li>
             </ul>
-          </section>
+          </DocSection>
 
-          <section id="restrictions">
-            <h2 className="font-display text-xl font-semibold">Contract restrictions</h2>
-            <ul className="list-disc space-y-1 pl-5">
-              <li>Max 1 POAP per wallet per event, enforced across every minting method.</li>
-              <li>Name: 1–128 characters. Description: ≤512. Location and external URL: ≤128 each.</li>
-              <li>Creator batch mint: max 101 recipients per transaction.</li>
-              <li>Soulbound tokens cannot be transferred once minted — only burned.</li>
-              <li>The contract itself is never modified by this frontend; every action here is a direct call to the deployed contract's existing interface.</li>
+          <DocSection id="minting" title="Minting & verification">
+            <p>
+              Before a mint, the event page shows the artwork and metadata so the attendee can see exactly what they
+              are claiming. Depending on the event, the mint panel exposes public mint, allowlist mint or signature mint.
+            </p>
+            <p>
+              After confirmation, ownership can be checked directly against the ERC-1155 contract and the app provides
+              external verification links such as BaseScan/OpenSea where appropriate. The Proof Card goes further by
+              turning the same onchain data into a shareable verification artifact.
+            </p>
+          </DocSection>
+
+          <DocSection id="gallery" title="Gallery">
+            <p>
+              Gallery is the collection view. It reads the connected wallet's claim state, renders each POAP's original
+              onchain artwork and metadata, and links to the full event detail page. It is designed to feel like a real
+              attendance collection rather than a raw transaction log.
+            </p>
+          </DocSection>
+
+          <DocSection id="passport" title="Event Passport">
+            <p>
+              The Event Passport transforms the connected wallet's POAP collection into a coherent attendance journey.
+              It summarizes total POAPs, events, locations and organizers, then presents the collection as passport-style
+              spreads instead of a simple grid.
+            </p>
+            <p>
+              Passport entries are generated from the same live event data used elsewhere in the app. Pages can be
+              exported as shareable images, giving attendees a visually memorable record of where they have shown up.
+            </p>
+          </DocSection>
+
+          <DocSection id="travelers" title="Traveler Network">
+            <p>
+              Traveler Network makes attendance social without inventing an offchain profile database. It identifies
+              wallets that minted the same events as the connected user by reading verified mint history for the events
+              they share.
+            </p>
+            <p>
+              The result is a “fellow travelers” view that shows the people you crossed paths with and the events you
+              have in common. This turns POAP ownership into a lightweight onchain identity and community-discovery layer.
+            </p>
+          </DocSection>
+
+          <DocSection id="orbit" title="Journey Orbit — the wow feature">
+            <p>
+              Journey Orbit is the visual centerpiece of the new attendance experience. Every owned event becomes a
+              point orbiting the user's journey, turning a flat token list into a visual map of participation.
+            </p>
+            <p>
+              It is intentionally derived from real owned event IDs and their contract metadata rather than decorative
+              mock data. The Orbit appears alongside Passport/Traveler experiences so the “wow” moment is still grounded
+              in verifiable attendance.
+            </p>
+          </DocSection>
+
+          <DocSection id="organizer" title="Organizer Command Center">
+            <p>
+              The Organizer page gathers all events created by the connected wallet into one operational dashboard.
+              It reads creator ownership, event supply and event metadata from the contract and exposes fast routes to
+              the actions an organizer actually needs.
+            </p>
+            <ul>
+              <li>Total events created.</li>
+              <li>Total POAP claims and average claims per event.</li>
+              <li>Per-event artwork, location and live supply.</li>
+              <li>Direct links to Manage, QR Kiosk and the public event page.</li>
+              <li>One-click route to create another event.</li>
             </ul>
-          </section>
+          </DocSection>
 
-          <section id="verify">
-            <h2 className="font-display text-xl font-semibold">Verifying a minted POAP</h2>
+          <DocSection id="reputation" title="Organizer reputation">
             <p>
-              After minting, the app links you straight to your transaction on{" "}
-              <a className="text-accent2 underline" href="https://sepolia.basescan.org" target="_blank" rel="noreferrer">BaseScan</a>{" "}
-              and to the token on{" "}
-              <a className="text-accent2 underline" href="https://testnets.opensea.io" target="_blank" rel="noreferrer">OpenSea</a>.
-              You can also independently verify ownership by calling <code>balanceOf(yourAddress, eventId)</code>{" "}
-              on the contract directly — which is exactly what this app's Gallery page does, live, every
-              time you load it.
+              Organizer Reputation is a transparent activity layer built from observable onchain participation rather
+              than a hidden rating. The current score uses the organizer's number of created events and total attendee
+              claims to summarize demonstrated activity.
             </p>
-            <p className="mt-3">
-              For a more shareable receipt than a bare transaction link, see the Boarding Pass below.
+            <p>
+              It is not a financial score and it does not change contract permissions. Its purpose is to help attendees
+              quickly understand whether an organizer has a meaningful event history on the protocol.
             </p>
-          </section>
+          </DocSection>
 
-          <section id="passport">
-            <h2 className="font-display text-xl font-semibold">The Passport</h2>
+          <DocSection id="proof" title="POAP Proof Card">
             <p>
-              Everything below this point is built on top of the required functionality — none of it is
-              asked for by the bounty, and all of it reads and writes the same live contract as everything
-              else in this app. The Gallery page satisfies the "view what I own" requirement on its own;
-              the Passport (<code>/passport</code>) is a second, more considered way to look at the same
-              data.
+              The Proof Card is a visually polished verification receipt for an owned POAP. It combines the original
+              event artwork, event name, location/date, wallet, event ID and Base network label with a verification QR.
             </p>
-            <p className="mt-3">
-              It opens on a closed cover — your stamp count, a "tap to open" cue — and tapping it plays an
-              actual 3D page-turn (CSS <code>perspective</code> + <code>rotateY</code>, not a fade) that
-              swings the cover away before the first spread appears underneath. Two POAPs are laid out per
-              page, oldest first, the way a real passport reads front to back rather than newest-first like
-              most feeds default to. Previous/Next page buttons turn with that same flip, and every spread
-              has an "Export this page" button that draws that exact two-up layout to a canvas and downloads
-              it as a PNG — no server, no screenshot tool, just <code>CanvasRenderingContext2D</code> drawing
-              the same data already on the page.
+            <p>
+              Ownership is checked onchain before the card is shown. Users can download the card, share it to Farcaster
+              or X, and open the external verification target. The card is therefore useful socially without asking the
+              viewer to trust a screenshot alone.
             </p>
-          </section>
+          </DocSection>
 
-          <section id="boarding-pass">
-            <h2 className="font-display text-xl font-semibold">The Boarding Pass</h2>
+          <DocSection id="farcaster" title="Farcaster Mini App">
             <p>
-              Right after a mint confirms — and again any time you revisit an event you already hold — the
-              app renders a ticket-stub card instead of a plain "transaction confirmed" message: the
-              artwork, the event, your address as "Passenger," the chain as "Gate," and a perforated edge
-              separating the main stub from a scannable <strong>QR code that encodes a real link to the
-              token's OpenSea page</strong>.
+              The same frontend is designed to work as both a normal website and a Farcaster Mini App. The Mini App keeps
+              the core flows usable on mobile: connect, explore events, view artwork, mint, open Passport/Travelers and
+              share proof. The project includes the Farcaster manifest under <code>public/.well-known/farcaster.json</code>.
             </p>
-            <p className="mt-3">
-              That QR code is the actual point of the feature, not decoration on top of it. A screenshot
-              with a caption claiming "I minted this" is easy to fake; a QR code that resolves to the real
-              token isn't. Anyone who receives the downloaded image — on Farcaster, on X, in a group chat —
-              can scan it and land directly on verified onchain proof without this app being open, without
-              trusting a caption, without needing any context at all. "Download," "Share on Farcaster," and
-              "Share on X" all work off the same rendered card, and direct OpenSea/BaseScan links sit
-              alongside the QR for anyone who'd rather click than scan.
+            <p>
+              Before submitting the bounty, deploy the final build, verify the Mini App inside Farcaster, publish the
+              required cast, tag the requested bounty contributors, and include the deployed app and GitHub links.
             </p>
-          </section>
+          </DocSection>
 
-          <section id="travelers">
-            <h2 className="font-display text-xl font-semibold">Fellow Travelers</h2>
-            <p>
-              A POAP doesn't just prove you were somewhere — it proves other specific people were there
-              too, and nothing in a standard gallery surfaces that. Fellow Travelers (<code>/travelers</code>)
-              does: it reads every event your connected wallet holds via batched <code>hasClaimed</code>{" "}
-              calls, then walks the onchain <code>NewMint</code> log history for exactly those events —
-              and only those events, so the expensive part of the query stays small no matter how large the
-              contract's total history grows — to find every other address that minted the same things you
-              did.
-            </p>
-            <p className="mt-3">
-              The result renders as a constellation: you at the center, everyone you've overlapped with
-              orbiting around you, sized by how many events you actually share. Results stream in live as
-              each event's log history resolves, rather than leaving you staring at a blank spinner until
-              the slowest one finishes. Click anyone in the constellation to see exactly which events you
-              have in common with them.
-            </p>
-          </section>
-
-          <section id="palette">
-            <h2 className="font-display text-xl font-semibold">Generative-ink palettes</h2>
-            <p>
-              Registering a POAP with your own hand-designed SVG is fully supported and remains the
-              recommended path for a real event's branding. But for anyone without the time or the design
-              tool open, the in-app Stamp Designer can generate artwork instead — and its palette isn't
-              picked from a handful of preset swatches, it's derived deterministically from the event's own
-              name. A fast hash of the title produces a hue, a light-or-dark base, and an accent color named
-              in the language of actual ink and wax — "Oxblood," "Verdigris," "Twilight Indigo" — rather
-              than a generic "orange" or "blue." Hit "Shuffle for another take" for a different valid option
-              off the same name; the same title always finds its way back to the same default ink.
-            </p>
-            <p className="mt-3">
-              The generator doesn't stop at "looks fine," either: it measures the real WCAG contrast ratio
-              between the generated accent and background and walks the accent's lightness toward the
-              background until it clears a 4.0 floor. That check exists because it caught a real problem —
-              roughly a third of naively hash-generated combinations tested as low as 2.25 contrast,
-              legible in theory and genuinely hard to read in practice. Every generated stamp on this app
-              has been through that check; none of them are just hoped to be readable.
-            </p>
-          </section>
+          <DocSection id="developer" title="Developer & deployment notes">
+            <ul>
+              <li>The supplied smart contract is not modified by this frontend.</li>
+              <li>Contract reads/writes go through the ABI in <code>lib/abi.ts</code> and configured Base contract address.</li>
+              <li>Run <code>npm install</code>, then <code>npm run build</code> in a supported Node/Linux environment before deployment.</li>
+              <li>Termux/Android may fail Next.js SWC native builds even when TypeScript is valid; Vercel builds in its normal Linux environment.</li>
+              <li>Run <code>npx tsc --noEmit</code> for a quick TypeScript validation.</li>
+              <li>Do not commit private keys or production secrets. Use environment variables.</li>
+            </ul>
+          </DocSection>
         </article>
       </div>
       <Footer />

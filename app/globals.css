@@ -422,3 +422,123 @@ body {
   .reference-event-grid { grid-template-columns:1fr; }
   .reference-event-grid .card > div:first-child { height:180px; }
 }
+
+/* Documentation — explicit theme-aware colors so dark mode never inherits
+   Tailwind Typography's light-theme prose palette. */
+.docs-shell {
+  width:min(100% - 32px, 1120px);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:220px minmax(0,1fr);
+  gap:64px;
+  padding:56px 0 96px;
+}
+.docs-sidebar {
+  position:sticky;
+  top:92px;
+  align-self:start;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  max-height:calc(100vh - 120px);
+  overflow:auto;
+  padding-right:12px;
+}
+.docs-sidebar-label {
+  margin:0 0 10px;
+  color:#ff671f;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.2em;
+}
+.docs-sidebar a {
+  color:rgb(var(--ink) / .58);
+  font-size:13px;
+  line-height:1.3;
+  transition:.15s ease;
+}
+.docs-sidebar a:hover { color:#ff671f; }
+.docs-article { min-width:0; color:rgb(var(--ink)); }
+.docs-hero { max-width:790px; padding-bottom:28px; border-bottom:1px solid rgb(var(--line)/.12); }
+.docs-hero h1 {
+  margin:12px 0 16px;
+  color:rgb(var(--ink));
+  font-size:clamp(2.25rem,5vw,4.6rem);
+  line-height:.95;
+  letter-spacing:-.055em;
+  font-weight:950;
+}
+.docs-hero > p:last-child {
+  max-width:720px;
+  color:rgb(var(--ink) / .68);
+  font-size:17px;
+  line-height:1.75;
+}
+.docs-mobile-index { display:none; }
+.docs-section {
+  padding:42px 0;
+  border-bottom:1px solid rgb(var(--line)/.1);
+  color:rgb(var(--ink));
+}
+.docs-section h2 {
+  margin:0 0 16px;
+  color:rgb(var(--ink));
+  font-size:clamp(1.55rem,3vw,2.2rem);
+  line-height:1.05;
+  letter-spacing:-.035em;
+  font-weight:950;
+}
+.docs-section p,
+.docs-section li {
+  color:rgb(var(--ink) / .72);
+  font-size:15px;
+  line-height:1.8;
+}
+.docs-section p { margin:0 0 14px; }
+.docs-section strong { color:rgb(var(--ink)); font-weight:900; }
+.docs-section code {
+  color:rgb(var(--ink));
+  background:rgb(var(--ink)/.07);
+  border:1px solid rgb(var(--line)/.08);
+  border-radius:6px;
+  padding:.08rem .35rem;
+  font-size:.9em;
+}
+.docs-section ul,
+.docs-section ol { margin:14px 0 14px 1.25rem; padding:0; }
+.docs-section ul { list-style:disc; }
+.docs-section ol { list-style:decimal; }
+.docs-section li { padding-left:.35rem; margin:.35rem 0; }
+.docs-callout {
+  margin:18px 0;
+  border-left:3px solid #ff671f;
+  border-radius:0 10px 10px 0;
+  background:rgb(255 103 31 / .08);
+  padding:14px 16px;
+  color:rgb(var(--ink) / .78);
+  font-size:14px;
+  line-height:1.7;
+}
+.docs-callout strong { color:rgb(var(--ink)); }
+@media (max-width: 800px) {
+  .docs-shell { display:block; width:min(100% - 28px, 720px); padding:38px 0 72px; }
+  .docs-sidebar { display:none; }
+  .docs-mobile-index {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin:28px 0 8px;
+  }
+  .docs-mobile-index a {
+    border:1px solid rgb(var(--line)/.12);
+    border-radius:9px;
+    padding:10px 11px;
+    color:rgb(var(--ink)/.72);
+    background:rgb(var(--surface)/.7);
+    font-size:11px;
+    font-weight:750;
+  }
+  .docs-section { padding:34px 0; }
+  .docs-section p,.docs-section li { font-size:14px; line-height:1.72; }
+}

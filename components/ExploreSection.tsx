@@ -93,7 +93,7 @@ export function ExploreSection() {
             setPage(0);
           }}
           placeholder="Search by name, location, or event ID"
-          className="w-full rounded-xl border border-ink/15 bg-white/60 px-4 py-2.5 text-sm sm:max-w-xs"
+          className="w-full rounded-xl border border-ink/15 bg-ink/5 px-4 py-2.5 text-sm sm:max-w-xs"
         />
         <div className="flex flex-wrap gap-2">
           {filters.map((f) => (

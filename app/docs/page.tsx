@@ -223,6 +223,13 @@ export default function DocsPage() {
               on the contract directly — which is exactly what this app's Gallery page does, live, every
               time you load it.
             </p>
+            <p className="mt-3">
+              Right after minting (and any time you revisit an event you already hold), the app also shows
+              a <strong>Boarding Pass</strong> — a ticket-stub card with the artwork, your address, and the
+              same OpenSea/BaseScan verification links, plus a one-tap way to download it as an image or
+              share it as a Farcaster cast. It's meant to be the thing you'd actually send someone, not
+              just a transaction receipt.
+            </p>
           </section>
         </article>
       </div>

@@ -3,13 +3,26 @@
 import { useEffect, useState } from "react";
 import { WagmiProvider, useConnect } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { wagmiConfig } from "@/lib/wagmi";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EnvWarningBanner } from "@/components/EnvWarningBanner";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    // A failing wallet connection (e.g. a WalletConnect relay rejecting a
+    // bad project ID) shouldn't get retried several times in a row with
+    // each attempt flashing a different connect/error state — that retry
+    // storm is what "flickering" looks like from the outside. One retry
+    // for reads, none for connect/write mutations, is enough for a genuine
+    // network blip without turning a real failure into a strobe effect.
+    queries: { retry: 1 },
+    mutations: { retry: 0 },
+  },
+});
 
 /**
  * Inside an actual Farcaster client, connect the user's Farcaster wallet
@@ -61,9 +74,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={lightTheme({ accentColor: "#ff5a1f", accentColorForeground: "#0b0d10" })} modalSize="compact">
-          <FarcasterAutoConnect />
-          {children}
+        <RainbowKitProvider
+          theme={darkTheme({ accentColor: "#ff5a1f", accentColorForeground: "#1a1408" })}
+          modalSize="compact"
+        >
+          <ErrorBoundary>
+            <FarcasterAutoConnect />
+            <EnvWarningBanner />
+            {children}
+          </ErrorBoundary>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

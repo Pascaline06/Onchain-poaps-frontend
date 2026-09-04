@@ -6,6 +6,7 @@ import { contractAddress } from "@/lib/contract";
 import { computeTiming } from "@/lib/time";
 import { InfoTip } from "./InfoTip";
 import { Countdown } from "./Countdown";
+import { BoardingPass } from "./BoardingPass";
 
 interface EventData {
   name: string; isPublic: boolean; isSoulbound: boolean;
@@ -46,7 +47,16 @@ export function MintPanel({ eventId, evt, prefillSig }: { eventId: bigint; evt: 
   }, [proofInput]);
 
   if (alreadyClaimed) {
-    return (
+    return address && chainId ? (
+      <div>
+        <BoardingPass eventId={eventId} owner={address} chainId={chainId} />
+        <p className="mt-3 text-center text-sm text-ink/50">
+          <a href="/gallery" className="underline hover:text-accent">
+            View your full gallery →
+          </a>
+        </p>
+      </div>
+    ) : (
       <div className="card p-6 text-center">
         <p className="text-accent2">You've already minted this POAP.</p>
         <a href="/gallery" className="text-sm underline text-ink/60">
@@ -155,18 +165,8 @@ export function MintPanel({ eventId, evt, prefillSig }: { eventId: bigint; evt: 
 
       {!address && <p className="text-center text-sm text-ink/50">Connect a wallet to mint.</p>}
       {error && <p className="text-sm text-red-400">{error.message}</p>}
-      {isSuccess && (
-        <p className="text-center text-sm text-accent2">
-          Minted! Check{" "}
-          <a className="underline" target="_blank" rel="noreferrer" href={`https://testnets.opensea.io/assets/base-sepolia/${chainId ? contractAddress(chainId) : ""}/${eventId}`}>
-            OpenSea
-          </a>{" "}
-          or{" "}
-          <a className="underline" target="_blank" rel="noreferrer" href={`https://sepolia.basescan.org/tx/${hash}`}>
-            BaseScan
-          </a>
-          .
-        </p>
+      {isSuccess && address && chainId && (
+        <BoardingPass eventId={eventId} owner={address} chainId={chainId} txHash={hash} justMinted />
       )}
     </div>
   );

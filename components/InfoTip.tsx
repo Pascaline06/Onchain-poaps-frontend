@@ -20,7 +20,10 @@ export function InfoTip({ title, children }: { title: string; children: React.Re
         i
       </button>
       {open && (
-        <div className="absolute z-20 mt-2 w-72 -translate-x-1/2 rounded-xl border border-white/10 bg-ink p-3 text-sm shadow-xl">
+        <div className="absolute z-20 mt-2 w-72 -translate-x-1/2 rounded-xl border border-white/10 bg-[#101114] p-3 text-sm shadow-xl">
+          {/* Hardcoded dark chip on purpose: this popover is designed to
+              always read as an "ink stamp" of explanatory text, regardless
+              of whether the site itself is in light or dark mode. */}
           <p className="mb-1 font-semibold text-accent">{title}</p>
           <p className="text-white/80">{children}</p>
         </div>

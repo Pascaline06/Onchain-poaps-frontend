@@ -227,14 +227,14 @@ export default function DocsPage() {
             </p>
           </DocSection>
 
-          <DocSection id="orbit" title="Journey Orbit — the wow feature">
+          <DocSection id="orbit" title="Journey Orbit">
             <p>
               Journey Orbit is the visual centerpiece of the new attendance experience. Every owned event becomes a
               point orbiting the user's journey, turning a flat token list into a visual map of participation.
             </p>
             <p>
               It is intentionally derived from real owned event IDs and their contract metadata rather than decorative
-              mock data. The Orbit appears alongside Passport/Traveler experiences so the “wow” moment is still grounded
+              mock data. The Orbit appears alongside the Passport and Traveler experiences so the visualization stays grounded
               in verifiable attendance.
             </p>
           </DocSection>

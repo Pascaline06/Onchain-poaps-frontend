@@ -1,13 +1,153 @@
 "use client";
+
+import Link from "next/link";
 import { useMemo } from "react";
-import { useAccount, useReadContract, useReadContracts } from "wagmi";
+import { useAccount, useReadContracts } from "wagmi";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
+import { POAPArtwork } from "@/components/POAPArtwork";
+
+interface JourneyPoint {
+  id: bigint;
+  name: string;
+  location: string;
+  date: bigint;
+  image?: string;
+  x: number;
+  y: number;
+}
 
 export function JourneyOrbit({ eventIds }: { eventIds: bigint[] }) {
-  const { chainId: connected } = useAccount(); const chainId = connected ?? DEFAULT_CHAIN.id;
-  const { data } = useReadContracts({ contracts: eventIds.map(id=>({address:contractAddress(chainId),abi:POAP_ABI,functionName:"events" as const,args:[id] as const})), query:{enabled:eventIds.length>0} });
-  const points = useMemo(()=> (data??[]).map((r,i)=>{ if(r.status!=="success"||!r.result)return null; const [name,,date,location,,,,]=r.result as any; const angle=(i/Math.max(1,eventIds.length))*Math.PI*2-Math.PI/2; return {id:eventIds[i],name,location,date,x:50+37*Math.cos(angle),y:50+37*Math.sin(angle)} }).filter(Boolean) as any[],[data,eventIds]);
-  return <div className="noise relative min-h-[380px] overflow-hidden rounded-3xl border border-ink/10 bg-[#070707] p-6 text-white sm:min-h-[440px]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgb(255_90_31/.13),transparent_35%)]"/><div className="absolute left-1/2 top-1/2 h-[58%] w-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"/><div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5"/><div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#ff6b1a] bg-[#111] shadow-[0_0_60px_rgba(255,90,31,.25)]"><div className="flex h-full items-center justify-center text-center text-[10px] font-black uppercase tracking-widest">Your<br/>Journey</div></div>{points.map((p:any)=><div key={p.id.toString()} className="absolute -translate-x-1/2 -translate-y-1/2" style={{left:`${p.x}%`,top:`${p.y}%`}}><div className="h-3 w-3 rounded-full bg-[#ff6b1a] shadow-[0_0_20px_rgba(255,107,26,.8)]"/><div className="absolute left-1/2 top-4 hidden w-32 -translate-x-1/2 text-center sm:block"><p className="truncate text-[10px] font-bold">{p.name}</p><p className="truncate text-[9px] text-white/40">{p.location||"Onchain"}</p></div></div>)}<div className="absolute left-5 top-5"><p className="font-mono text-[10px] uppercase tracking-[.2em] text-[#ff6b1a]">WOW FEATURE</p><h3 className="mt-1 text-xl font-black">Onchain Journey Orbit</h3><p className="mt-1 max-w-xs text-xs text-white/45">Every POAP becomes a point in your permanent attendance history.</p></div></div>;
+  const { chainId: connected } = useAccount();
+  const chainId = connected ?? DEFAULT_CHAIN.id;
+
+  const { data: eventReads } = useReadContracts({
+    contracts: eventIds.map((id) => ({
+      address: contractAddress(chainId),
+      abi: POAP_ABI,
+      functionName: "events" as const,
+      args: [id] as const,
+    })),
+    query: { enabled: eventIds.length > 0 },
+  });
+
+  const { data: uriReads } = useReadContracts({
+    contracts: eventIds.map((id) => ({
+      address: contractAddress(chainId),
+      abi: POAP_ABI,
+      functionName: "uri" as const,
+      args: [id] as const,
+    })),
+    query: { enabled: eventIds.length > 0 },
+  });
+
+  const points = useMemo<JourneyPoint[]>(() => {
+    return eventIds
+      .map((id, i) => {
+        const eventResult = eventReads?.[i];
+        if (eventResult?.status !== "success" || !eventResult.result) return null;
+        const [name, , date, location] = eventResult.result as any;
+        const uriResult = uriReads?.[i];
+        const meta = uriResult?.status === "success" && typeof uriResult.result === "string"
+          ? decodeTokenUri(uriResult.result)
+          : null;
+        const angle = (i / Math.max(1, eventIds.length)) * Math.PI * 2 - Math.PI / 2;
+        return {
+          id,
+          name: name || `Event #${id.toString()}`,
+          location: location || "Onchain",
+          date,
+          image: meta?.image,
+          x: 50 + 35 * Math.cos(angle),
+          y: 50 + 35 * Math.sin(angle),
+        };
+      })
+      .filter(Boolean) as JourneyPoint[];
+  }, [eventIds, eventReads, uriReads]);
+
+  return (
+    <section className="overflow-hidden rounded-3xl border border-ink/15 bg-[#070707] text-white shadow-2xl">
+      <div className="border-b border-white/10 px-5 py-5 sm:px-7">
+        <p className="font-mono text-[10px] font-bold uppercase tracking-[.24em] text-[#ff641f]">
+          ONCHAIN JOURNEY ORBIT
+        </p>
+        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h3 className="text-2xl font-black tracking-[-.035em]">Your attendance, mapped.</h3>
+            <p className="mt-1 max-w-xl text-sm leading-relaxed text-white/50">
+              Each orbiting stamp is one POAP you own. Tap a stamp or an event below to open the original onchain record.
+            </p>
+          </div>
+          <span className="rounded-full border border-white/10 px-3 py-1.5 font-mono text-[10px] font-bold uppercase tracking-wider text-white/50">
+            {eventIds.length} {eventIds.length === 1 ? "event" : "events"} mapped
+          </span>
+        </div>
+      </div>
+
+      {eventIds.length === 0 ? (
+        <div className="px-6 py-16 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#ff641f] text-xs font-black uppercase tracking-widest text-[#ff641f]">
+            Empty
+          </div>
+          <p className="mt-5 text-sm text-white/50">Mint a POAP and your first event will appear here.</p>
+        </div>
+      ) : (
+        <>
+          <div className="relative mx-auto aspect-square w-full max-w-[560px] overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,100,31,.16),transparent_38%)]" />
+            <div className="absolute left-1/2 top-1/2 h-[55%] w-[55%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
+            <div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/[0.07]" />
+            <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-[#ff641f] bg-[#111] text-center shadow-[0_0_60px_rgba(255,100,31,.24)]">
+              <span className="text-[10px] font-black uppercase tracking-[.18em]">Your<br />Journey</span>
+            </div>
+
+            {points.map((point, index) => (
+              <Link
+                key={point.id.toString()}
+                href={`/event/${point.id}`}
+                title={`${point.name} — ${point.location}`}
+                aria-label={`Open ${point.name}`}
+                className="group absolute -translate-x-1/2 -translate-y-1/2"
+                style={{ left: `${point.x}%`, top: `${point.y}%` }}
+              >
+                <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border-2 border-[#ff641f] bg-[#141414] shadow-[0_0_24px_rgba(255,100,31,.45)] transition-transform group-hover:scale-110 sm:h-14 sm:w-14">
+                  <POAPArtwork
+                    imageDataUri={point.image}
+                    alt={point.name}
+                    className="flex h-full w-full items-center justify-center p-1 [&_svg]:max-h-full [&_svg]:max-w-full"
+                    fallback={<span className="text-xs font-black text-[#ff641f]">{index + 1}</span>}
+                  />
+                </div>
+                <span className="absolute -bottom-2 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#ff641f] px-1 text-[9px] font-black text-white">
+                  {index + 1}
+                </span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="border-t border-white/10 p-4 sm:p-5">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {points.map((point, index) => (
+                <Link
+                  key={`row-${point.id.toString()}`}
+                  href={`/event/${point.id}`}
+                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 transition-colors hover:border-[#ff641f]/50 hover:bg-white/[0.06]"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ff641f]/15 text-xs font-black text-[#ff641f]">
+                    {index + 1}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black">{point.name}</span>
+                    <span className="block truncate text-[11px] text-white/45">{point.location}</span>
+                  </span>
+                  <span className="ml-auto text-[#ff641f]">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+    </section>
+  );
 }

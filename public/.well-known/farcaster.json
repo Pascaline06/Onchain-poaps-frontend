@@ -12,7 +12,7 @@
     "imageUrl": "https://onchain-poaps-frontend-mu.vercel.app/og-image.png",
     "buttonTitle": "Mint a POAP",
     "splashImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/splash.png",
-    "splashBackgroundColor": "#1c1c1f",
+    "splashBackgroundColor": "#faf7f0",
 
     "subtitle": "Onchain proof of attendance",
     "description": "Create, distribute, and collect fully onchain POAPs on Base — no IPFS, no backend.",

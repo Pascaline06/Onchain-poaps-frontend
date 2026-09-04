@@ -26,7 +26,7 @@ export const metadata: Metadata = {
       imageUrl: `${appUrl}/og-image.png`,
       button: {
         title: "Open Onchain POAPs",
-        action: { type: "launch_miniapp", url: appUrl, name: "Onchain POAPs", splashImageUrl: `${appUrl}/splash.png`, splashBackgroundColor: "#1c1c1f" },
+        action: { type: "launch_miniapp", url: appUrl, name: "Onchain POAPs", splashImageUrl: `${appUrl}/splash.png`, splashBackgroundColor: "#faf7f0" },
       },
     }),
   },

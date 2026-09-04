@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { WagmiProvider, useConnect } from "wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { RainbowKitProvider, darkTheme } from "@rainbow-me/rainbowkit";
+import { RainbowKitProvider, lightTheme } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
 import { wagmiConfig } from "@/lib/wagmi";
 import { sdk } from "@farcaster/miniapp-sdk";
@@ -82,10 +82,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider
-          theme={darkTheme({ accentColor: "#ff5a1f", accentColorForeground: "#0b0d10" })}
-          modalSize="compact"
-        >
+        <RainbowKitProvider theme={lightTheme({ accentColor: "#ff5a1f", accentColorForeground: "#0b0d10" })} modalSize="compact">
           <FarcasterAutoConnect />
           {children}
         </RainbowKitProvider>

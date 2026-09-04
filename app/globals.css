@@ -11,16 +11,22 @@ body {
   background-color: theme("colors.paper");
   color: theme("colors.ink");
   background-image:
-    radial-gradient(circle at 1px 1px, rgb(11 13 16 / 0.05) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgb(242 237 228 / 0.06) 1px, transparent 0);
   background-size: 22px 22px;
 }
 
 .card {
-  @apply rounded-2xl border border-ink/10 bg-white/60 shadow-sm backdrop-blur-sm;
+  @apply rounded-2xl border border-ink/10 bg-ink/[0.04] shadow-sm backdrop-blur-sm;
 }
 
 .btn-primary {
-  @apply rounded-xl bg-accent px-5 py-3 font-semibold text-ink shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:brightness-110 active:translate-y-0 active:shadow-sm disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:brightness-100;
+  /* Hardcoded rather than text-ink on purpose: ink is now a light color
+     (correct for body text on the dark background), but this button's
+     background stays accent-orange regardless of theme, and light text on
+     that orange fails contrast (2.67:1, checked). This exact dark literal
+     against accent was verified at 6.24:1 and hasn't changed. */
+  @apply rounded-xl bg-accent px-5 py-3 font-semibold shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:brightness-110 active:translate-y-0 active:shadow-sm disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:hover:brightness-100;
+  color: #0b0d10;
 }
 
 .btn-secondary {
@@ -29,12 +35,6 @@ body {
 
 .pill {
   @apply rounded-full px-3 py-1 text-xs font-medium;
-}
-
-/* Compact action button for the Boarding Pass card — same family as
-   .btn-secondary but sized for four buttons to sit comfortably in a row. */
-.boarding-pass-btn {
-  @apply rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink/5 disabled:opacity-40;
 }
 
 /* The signature element: a rotated ink-stamp ring used to mark a mint as

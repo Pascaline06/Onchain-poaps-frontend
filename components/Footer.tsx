@@ -27,8 +27,6 @@ export function Footer() {
               <div className="flex flex-col gap-2.5 font-medium text-ink/80">
                 <a href="/register" className="transition-colors hover:text-accent">Create a POAP</a>
                 <a href="/gallery" className="transition-colors hover:text-accent">Gallery</a>
-                <a href="/passport" className="transition-colors hover:text-accent">Passport</a>
-                <a href="/travelers" className="transition-colors hover:text-accent">Fellow Travelers</a>
                 <a href="/docs" className="transition-colors hover:text-accent">Docs</a>
               </div>
             </div>

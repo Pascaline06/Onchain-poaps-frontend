@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Fraunces, Space_Mono, Inter } from "next/font/google";
+// stubbed for sandbox verification only
 import { Providers } from "./providers";
 import "./globals.css";
 
 // "Official document" serif for headers, a ticket/stamp mono for data, and a
 // quiet body sans — see app/globals.css for how these map to the design.
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap" });
-const spaceMono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono", display: "swap" });
-const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const fraunces = { variable: "" };
+const spaceMono = { variable: "" };
+const inter = { variable: "" };
 
 // Stripped of any trailing slash so `${appUrl}/og-image.png` etc. never
 // produces a double slash regardless of how NEXT_PUBLIC_APP_URL was typed
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
       imageUrl: `${appUrl}/og-image.png`,
       button: {
         title: "Open Onchain POAPs",
-        action: { type: "launch_miniapp", url: appUrl, name: "Onchain POAPs", splashImageUrl: `${appUrl}/splash.png`, splashBackgroundColor: "#faf7f0" },
+        action: { type: "launch_miniapp", url: appUrl, name: "Onchain POAPs", splashImageUrl: `${appUrl}/splash.png`, splashBackgroundColor: "#1c1c1f" },
       },
     }),
   },

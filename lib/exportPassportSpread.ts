@@ -1,8 +1,8 @@
 import type { PassportEntryData } from "./usePassportEntryData";
 import { formatEventDate } from "@/components/PassportEntry";
 
-const PAPER = "#faf7f0";
-const INK = "#0b0d10";
+const PAPER = "#1c1c1f";
+const INK = "#f2ede4";
 const ACCENT = "#ff5a1f";
 
 function loadImage(src: string): Promise<HTMLImageElement | null> {
@@ -42,12 +42,12 @@ function drawEntry(
   if (entry.image) {
     ctx.drawImage(entry.image, artX, artY, artSize, artSize);
   } else {
-    ctx.strokeStyle = "rgba(11,13,16,0.15)";
+    ctx.strokeStyle = "rgba(242,237,228,0.15)";
     ctx.setLineDash([6, 6]);
     ctx.lineWidth = 2;
     ctx.strokeRect(artX, artY, artSize, artSize);
     ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(11,13,16,0.3)";
+    ctx.fillStyle = "rgba(242,237,228,0.3)";
     ctx.font = "12px 'Space Mono', monospace";
     ctx.fillText("artwork unavailable", centerX, artY + artSize / 2);
   }
@@ -56,7 +56,7 @@ function drawEntry(
   ctx.font = "600 20px Georgia, serif";
   ctx.fillText(entry.data.name || "Untitled POAP", centerX, artY + artSize + 40);
 
-  ctx.fillStyle = "rgba(11,13,16,0.55)";
+  ctx.fillStyle = "rgba(242,237,228,0.55)";
   ctx.font = "13px system-ui, sans-serif";
   const subtitle = [entry.data.location, formatEventDate(entry.data.eventDate)].filter(Boolean).join(" · ");
   ctx.fillText(subtitle || "No date or location given", centerX, artY + artSize + 65);
@@ -83,7 +83,7 @@ export async function exportPassportSpread(
   ctx.fillRect(0, 0, width, height);
 
   // Subtle dot grid, matching the site's own background texture.
-  ctx.fillStyle = "rgba(11,13,16,0.06)";
+  ctx.fillStyle = "rgba(242,237,228,0.06)";
   for (let x = 0; x < width; x += 22) {
     for (let y = 0; y < height; y += 22) {
       ctx.beginPath();
@@ -94,9 +94,9 @@ export async function exportPassportSpread(
 
   // Center fold shadow, the one detail that says "book" instead of "card."
   const gradient = ctx.createLinearGradient(width / 2 - 20, 0, width / 2 + 20, 0);
-  gradient.addColorStop(0, "rgba(11,13,16,0)");
-  gradient.addColorStop(0.5, "rgba(11,13,16,0.08)");
-  gradient.addColorStop(1, "rgba(11,13,16,0)");
+  gradient.addColorStop(0, "rgba(242,237,228,0)");
+  gradient.addColorStop(0.5, "rgba(242,237,228,0.08)");
+  gradient.addColorStop(1, "rgba(242,237,228,0)");
   ctx.fillStyle = gradient;
   ctx.fillRect(width / 2 - 20, 0, 40, height);
 

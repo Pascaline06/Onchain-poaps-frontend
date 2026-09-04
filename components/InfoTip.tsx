@@ -20,9 +20,9 @@ export function InfoTip({ title, children }: { title: string; children: React.Re
         i
       </button>
       {open && (
-        <div className="absolute z-20 mt-2 w-72 -translate-x-1/2 rounded-xl border border-white/10 bg-ink p-3 text-sm shadow-xl">
+        <div className="absolute z-20 mt-2 w-72 -translate-x-1/2 rounded-xl border border-black/10 bg-ink p-3 text-sm shadow-xl">
           <p className="mb-1 font-semibold text-accent">{title}</p>
-          <p className="text-white/80">{children}</p>
+          <p className="text-black/70">{children}</p>
         </div>
       )}
     </span>

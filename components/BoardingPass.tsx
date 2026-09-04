@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { QRCodeCanvas } from "qrcode.react";
 import { usePassportEntryData } from "@/lib/usePassportEntryData";
 import { formatEventDate } from "./PassportEntry";
 import { POAPArtwork } from "./POAPArtwork";
 import { exportBoardingPass } from "@/lib/exportBoardingPass";
-import { barcodeBars } from "@/lib/boardingPassBarcode";
 import { openSeaUrl, baseScanTxUrl, shortAddress } from "@/lib/links";
 
 /**
@@ -14,6 +14,11 @@ import { openSeaUrl, baseScanTxUrl, shortAddress } from "@/lib/links";
  * moment right after a mint — turning a bare transaction hash into
  * something that actually feels like proof you were there, and something
  * worth sharing.
+ *
+ * The QR code is the functional core of this, not decoration: it encodes a
+ * real link back to the token's OpenSea page, so anyone who receives the
+ * downloaded image (not just a link to this app) can scan it and land
+ * directly on verified onchain proof, with no other context required.
  *
  * Reused in two places: right after a fresh mint (justMinted, with the tx
  * hash available for a direct BaseScan link) and on revisiting an event you
@@ -34,11 +39,13 @@ export function BoardingPass({
 }) {
   const data = usePassportEntryData(eventId);
   const [downloading, setDownloading] = useState(false);
+  const qrRef = useRef<HTMLCanvasElement>(null);
 
+  const verifyUrl = openSeaUrl(chainId, eventId);
   const shareText = `Just minted "${data.name || "a POAP"}" onchain — proof you were there, forever.`;
   const appUrl = typeof window !== "undefined" ? window.location.href : "";
   const castIntentUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(shareText)}&embeds[]=${encodeURIComponent(appUrl)}`;
-  const bars = barcodeBars(`${owner}-${eventId.toString()}`, 14);
+  const tweetIntentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(appUrl)}`;
 
   async function handleDownload() {
     setDownloading(true);
@@ -48,6 +55,7 @@ export function BoardingPass({
         eventId,
         owner,
         filename: `boarding-pass-${eventId.toString()}.png`,
+        qrDataUrl: qrRef.current?.toDataURL("image/png"),
       });
     } finally {
       setDownloading(false);
@@ -111,6 +119,9 @@ export function BoardingPass({
             <a href={castIntentUrl} target="_blank" rel="noreferrer" className="boarding-pass-btn">
               Share on Farcaster
             </a>
+            <a href={tweetIntentUrl} target="_blank" rel="noreferrer" className="boarding-pass-btn">
+              Share on X
+            </a>
             <a href={openSeaUrl(chainId, eventId)} target="_blank" rel="noreferrer" className="boarding-pass-btn">
               View on OpenSea
             </a>
@@ -133,15 +144,15 @@ export function BoardingPass({
           <div className="absolute -left-2 -bottom-2 h-4 w-4 rounded-full bg-paper" />
         </div>
 
-        {/* Ticket stub */}
-        <div className="flex items-center justify-center gap-4 bg-ink/[0.03] p-4 sm:w-28 sm:flex-col sm:justify-center">
+        {/* Ticket stub — the QR always renders on a fixed light swatch
+            (not the theme's paper/ink tokens) since scanning depends on
+            real light-background/dark-module contrast, not app styling. */}
+        <div className="flex items-center justify-center gap-3 bg-ink/[0.03] p-4 sm:w-28 sm:flex-col sm:justify-center">
           <span className="whitespace-nowrap font-mono text-[9px] uppercase tracking-[0.2em] text-ink/40 sm:-rotate-90">
-            Verified Onchain
+            Scan to verify
           </span>
-          <div className="flex h-8 items-end gap-[2px]">
-            {bars.map((h, i) => (
-              <span key={i} className="w-[3px] bg-ink/50" style={{ height: `${h * 100}%` }} />
-            ))}
+          <div className="rounded-lg bg-[#faf7f0] p-1.5">
+            <QRCodeCanvas ref={qrRef} value={verifyUrl} size={88} level="M" fgColor="#0b0d10" bgColor="#faf7f0" />
           </div>
           <span className="font-mono text-[10px] text-ink/40">#{eventId.toString()}</span>
         </div>

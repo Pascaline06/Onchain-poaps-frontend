@@ -8,27 +8,19 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { wagmiConfig } from "@/lib/wagmi";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { EnvWarningBanner } from "@/components/EnvWarningBanner";
 
-// Zero configuration here used to mean every one of the app's onchain
-// reads fell back to React Query's defaults — and one default in
-// particular, refetchOnWindowFocus, meant every single active read on a
-// page refired simultaneously the moment the browser tab regained focus
-// (switching back from MetaMask's in-app browser, for instance). Across a
-// page with a dozen+ POAP cards each doing their own reads, that's a burst
-// of simultaneous requests landing on a free public RPC all at once —
-// exactly the kind of thing that trips a rate limit and shows up as
-// content flickering between working and erroring. staleTime means
-// identical reads within a short window reuse cached data instead of
-// re-fetching at all, which cuts the number of bursts far more than any
-// per-request retry tuning could.
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-      retry: 2,
-      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 10_000),
-    },
+    // A failing wallet connection (e.g. a WalletConnect relay rejecting a
+    // bad project ID) shouldn't get retried several times in a row with
+    // each attempt flashing a different connect/error state — that retry
+    // storm is what "flickering" looks like from the outside. One retry
+    // for reads, none for connect/write mutations, is enough for a genuine
+    // network blip without turning a real failure into a strobe effect.
+    queries: { retry: 1 },
+    mutations: { retry: 0 },
   },
 });
 
@@ -82,9 +74,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={lightTheme({ accentColor: "#ff5a1f", accentColorForeground: "#0b0d10" })} modalSize="compact">
-          <FarcasterAutoConnect />
-          {children}
+        <RainbowKitProvider
+          theme={lightTheme({ accentColor: "#ff5a1f", accentColorForeground: "#0b0d10" })}
+          modalSize="compact"
+        >
+          <ErrorBoundary>
+            <FarcasterAutoConnect />
+            <EnvWarningBanner />
+            {children}
+          </ErrorBoundary>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

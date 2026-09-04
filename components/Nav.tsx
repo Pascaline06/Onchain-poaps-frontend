@@ -15,6 +15,7 @@ export function Nav() {
       <div className="flex items-center gap-6 text-sm font-medium">
         <Link href="/register" className="text-ink/70 transition-colors hover:text-accent">Create</Link>
         <Link href="/gallery" className="text-ink/70 transition-colors hover:text-accent">Gallery</Link>
+        <Link href="/passport" className="hidden text-ink/70 transition-colors hover:text-accent sm:inline">Passport</Link>
         <Link href="/travelers" className="text-ink/70 transition-colors hover:text-accent">Travelers</Link>
         <Link href="/docs" className="text-ink/70 transition-colors hover:text-accent">Docs</Link>
         <ConnectWallet />

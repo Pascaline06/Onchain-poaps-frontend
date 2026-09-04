@@ -31,6 +31,12 @@ body {
   @apply rounded-full px-3 py-1 text-xs font-medium;
 }
 
+/* Compact action button for the Boarding Pass card — same family as
+   .btn-secondary but sized for four buttons to sit comfortably in a row. */
+.boarding-pass-btn {
+  @apply rounded-lg border border-ink/20 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-ink/5 disabled:opacity-40;
+}
+
 /* The signature element: a rotated ink-stamp ring used to mark a mint as
    confirmed onchain — literally "stamping" the passport. See <Stamp />. */
 .stamp {
@@ -47,4 +53,14 @@ body {
 .passport-page-turn {
   animation: page-turn 0.5s ease-in-out;
   transform-style: preserve-3d;
+}
+
+@keyframes cover-open {
+  0% { transform: perspective(1600px) rotateY(0deg); opacity: 1; }
+  100% { transform: perspective(1600px) rotateY(-110deg); opacity: 0; }
+}
+.passport-cover-open {
+  animation: cover-open 0.45s ease-in forwards;
+  transform-style: preserve-3d;
+  transform-origin: left center;
 }

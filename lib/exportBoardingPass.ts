@@ -1,7 +1,6 @@
 import type { PassportEntryData } from "./usePassportEntryData";
 import { formatEventDate } from "@/components/PassportEntry";
 import { shortAddress } from "./links";
-import { barcodeBars } from "./boardingPassBarcode";
 
 // Same literal paper/ink pair as exportPassportSpread.ts, and for the same
 // reason: this is a printed artifact (a ticket stub), not a screenshot of
@@ -32,8 +31,14 @@ export async function exportBoardingPass(params: {
   eventId: bigint;
   owner: `0x${string}`;
   filename: string;
+  /** PNG data URL of the already-rendered on-page QR canvas, read via
+   * canvas.toDataURL() in the BoardingPass component. Passed in rather
+   * than re-encoded here so the export always matches exactly what the
+   * person sees on screen, using the one QR-encoding implementation
+   * (qrcode.react) already in this project instead of a second one. */
+  qrDataUrl?: string;
 }): Promise<void> {
-  const { data, eventId, owner, filename } = params;
+  const { data, eventId, owner, filename, qrDataUrl } = params;
   const width = 1000;
   const height = 380;
   const stubWidth = 230;
@@ -139,23 +144,25 @@ export async function exportBoardingPass(params: {
   ctx.fillText("ONCHAIN POAPS", 0, 0);
   ctx.restore();
 
-  // A deterministic "barcode" pattern derived from the owner + event id, so
-  // it looks like real ticket data rather than decoration for its own sake.
-  const bars = barcodeBars(`${owner}-${eventId.toString()}`, 26);
-  let barX = mainWidth + 40;
-  const barY = 40;
-  const barMaxHeight = 90;
-  bars.forEach((h) => {
-    ctx.fillStyle = INK;
-    ctx.fillRect(barX, barY, 4, barMaxHeight * h);
-    barX += 7;
-  });
+  // The QR code — the actual functional point of this stub, not
+  // decoration: it's the same one rendered on the page, encoding a link
+  // straight to the token's OpenSea verification page, so the downloaded
+  // image is provable on its own without needing this app open.
+  const qrSize = 130;
+  const qrX = mainWidth + (stubWidth - qrSize) / 2;
+  const qrY = 55;
+  if (qrDataUrl) {
+    const qrImage = await loadImage(qrDataUrl);
+    ctx.fillStyle = PAPER;
+    ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
+    if (qrImage) ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+  }
 
   ctx.fillStyle = "rgba(11,13,16,0.4)";
   ctx.font = "600 11px 'Space Mono', monospace";
   ctx.textAlign = "center";
-  ctx.fillText(`#${eventId.toString()}`, mainWidth + stubWidth / 2, 300);
-  ctx.fillText("VERIFIED ONCHAIN", mainWidth + stubWidth / 2, height - 30);
+  ctx.fillText("SCAN TO VERIFY", mainWidth + stubWidth / 2, qrY + qrSize + 30);
+  ctx.fillText(`#${eventId.toString()}`, mainWidth + stubWidth / 2, height - 30);
 
   const dataUrl = canvas.toDataURL("image/png");
   const link = document.createElement("a");

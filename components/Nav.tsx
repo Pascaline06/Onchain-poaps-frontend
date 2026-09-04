@@ -13,8 +13,20 @@ const links = [
   ["/docs", "Docs"],
 ] as const;
 
+const featureLinks = [
+  ["/passport", "Event Passport", "Your permanent attendance record"],
+  ["/passport#journey-orbit", "Journey Orbit", "See every owned POAP mapped visually"],
+  ["/travelers", "Traveler Network", "Find wallets that attended with you"],
+  ["/organizer", "Organizer Command Center", "Create, manage and measure events"],
+  ["/organizer#organizer-reputation", "Organizer Reputation", "Onchain activity and claim score"],
+  ["/proof", "POAP Proof Cards", "Share and verify attendance proof"],
+] as const;
+
 export function Nav() {
   const [open, setOpen] = useState(false);
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  const closeAll = () => { setOpen(false); setFeaturesOpen(false); };
+
   return (
     <nav className="reference-nav">
       <div className="reference-nav-inner">
@@ -24,7 +36,31 @@ export function Nav() {
         </Link>
 
         <div className="reference-nav-links">
-          {links.map(([href, label]) => (
+          {links.slice(0, 3).map(([href, label]) => (
+            <Link key={href} href={href}>{label}</Link>
+          ))}
+          <div className="reference-features-wrap">
+            <button
+              type="button"
+              className="reference-features-trigger"
+              aria-expanded={featuresOpen}
+              onClick={() => setFeaturesOpen(v => !v)}
+            >
+              Features <span aria-hidden="true">⌄</span>
+            </button>
+            {featuresOpen && (
+              <div className="reference-features-popover">
+                <p className="reference-features-label">BUILT-IN FEATURES</p>
+                {featureLinks.map(([href, label, description]) => (
+                  <Link key={`${href}-${label}`} href={href} onClick={closeAll}>
+                    <strong>{label}</strong>
+                    <span>{description}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+          {links.slice(3).map(([href, label]) => (
             <Link key={href} href={href}>{label}</Link>
           ))}
         </div>
@@ -48,11 +84,29 @@ export function Nav() {
       {open && (
         <div className="reference-mobile-menu">
           <div className="reference-mobile-menu-inner">
-            {links.map(([href, label]) => (
-              <Link key={href} href={href} onClick={() => setOpen(false)}>{label}</Link>
-            ))}
-            <Link href="/register" onClick={() => setOpen(false)} className="reference-mobile-accent">Create a POAP</Link>
-            <div className="reference-mobile-wallet"><ConnectWallet /></div>
+            <div className="reference-mobile-primary">
+              {links.map(([href, label]) => (
+                <Link key={href} href={href} onClick={closeAll}>{label}</Link>
+              ))}
+            </div>
+
+            <div className="reference-mobile-feature-panel">
+              <p className="reference-mobile-feature-label">BUILT-IN FEATURES</p>
+              <div className="reference-mobile-feature-grid">
+                {featureLinks.map(([href, label, description]) => (
+                  <Link key={`${href}-${label}`} href={href} onClick={closeAll}>
+                    <span className="reference-mobile-feature-arrow">↗</span>
+                    <strong>{label}</strong>
+                    <small>{description}</small>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="reference-mobile-cta-row">
+              <Link href="/register" onClick={closeAll} className="reference-mobile-accent">Create a POAP</Link>
+              <div className="reference-mobile-wallet"><ConnectWallet /></div>
+            </div>
           </div>
         </div>
       )}

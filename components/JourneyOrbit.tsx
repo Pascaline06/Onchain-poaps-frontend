@@ -67,7 +67,7 @@ export function JourneyOrbit({ eventIds }: { eventIds: bigint[] }) {
   }, [eventIds, eventReads, uriReads]);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-ink/15 bg-[#070707] text-white shadow-2xl">
+    <section id="journey-orbit" className="scroll-mt-24 overflow-hidden rounded-3xl border border-ink/15 bg-[#070707] text-white shadow-2xl">
       <div className="border-b border-white/10 px-5 py-5 sm:px-7">
         <p className="font-mono text-[10px] font-bold uppercase tracking-[.24em] text-[#ff641f]">
           ONCHAIN JOURNEY ORBIT

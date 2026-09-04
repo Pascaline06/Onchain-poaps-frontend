@@ -37,7 +37,7 @@ export function Footer() {
               <div className="flex flex-col gap-2.5 font-medium text-ink/80">
                 <a href="/passport" className="transition-colors hover:text-accent">Journey Orbit</a>
                 <a href="/organizer" className="transition-colors hover:text-accent">Organizer Reputation</a>
-                <a href="/docs#proof" className="transition-colors hover:text-accent">POAP Proof Cards</a>
+                <a href="/proof" className="transition-colors hover:text-accent">POAP Proof Cards</a>
                 <a href="/docs#signature" className="transition-colors hover:text-accent">QR & Signature Minting</a>
                 <a href="/docs#allowlist" className="transition-colors hover:text-accent">Allowlist Tools</a>
               </div>
@@ -47,7 +47,7 @@ export function Footer() {
               <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink/60">Verify</p>
               <div className="flex flex-col gap-2.5 font-medium text-ink/80">
                 <a href="/gallery" className="transition-colors hover:text-accent">Verify a POAP</a>
-                <a href="/docs#proof" className="transition-colors hover:text-accent">Share Proof Card</a>
+                <a href="/proof" className="transition-colors hover:text-accent">Share Proof Card</a>
                 <a href={explorerUrl} target="_blank" rel="noreferrer" className="transition-colors hover:text-accent">Contract on BaseScan</a>
                 <a href="https://github.com/jvaleskadevs/onchain-poaps" target="_blank" rel="noreferrer" className="transition-colors hover:text-accent">Protocol source</a>
               </div>

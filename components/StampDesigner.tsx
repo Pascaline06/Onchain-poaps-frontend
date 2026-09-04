@@ -68,7 +68,7 @@ export function StampDesigner({ onUse }: { onUse: (svg: string) => void }) {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={40}
-              className="mt-1 w-full rounded-xl border border-ink/15 bg-ink/5 p-2.5 text-sm"
+              className="mt-1 w-full rounded-xl border border-ink/15 bg-white/60 p-2.5 text-sm"
             />
           </div>
           <div>
@@ -77,7 +77,7 @@ export function StampDesigner({ onUse }: { onUse: (svg: string) => void }) {
               value={subtitle}
               onChange={(e) => setSubtitle(e.target.value)}
               maxLength={32}
-              className="mt-1 w-full rounded-xl border border-ink/15 bg-ink/5 p-2.5 text-sm"
+              className="mt-1 w-full rounded-xl border border-ink/15 bg-white/60 p-2.5 text-sm"
             />
           </div>
         </div>

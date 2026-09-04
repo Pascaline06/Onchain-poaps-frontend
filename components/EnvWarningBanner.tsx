@@ -13,13 +13,13 @@ export function EnvWarningBanner() {
   return (
     <div className="border-b border-accent/30 bg-accent/10 px-4 py-2 text-center text-xs text-ink/80">
       Wallet connections aren&apos;t fully configured — this deploy is missing a{" "}
-      <code className="rounded bg-ink/10 px-1 py-0.5">NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID</code>. Wallets
-      without a browser extension to fall back on (e.g. MetaMask on a plain mobile browser) will
-      fail to connect until one is set. Get a free one at{" "}
+      <code className="rounded bg-ink/10 px-1 py-0.5">NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID</code>. Until
+      one is set, only a wallet browser extension can connect directly — MetaMask/Coinbase/Rainbow's
+      mobile app deep-link is hidden rather than shown broken. Get a free project ID at{" "}
       <a href="https://cloud.walletconnect.com" target="_blank" rel="noreferrer" className="underline">
         cloud.walletconnect.com
       </a>{" "}
-      and add it to this project&apos;s environment variables.
+      and add it to this project&apos;s environment variables to restore it.
     </div>
   );
 }

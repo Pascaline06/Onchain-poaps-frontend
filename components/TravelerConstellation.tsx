@@ -79,15 +79,14 @@ export function TravelerConstellation({
             );
           })}
 
-          {/* Reference rings, faint — stroke tracks the ink token so they
-              stay visible as a light etching against the dark paper. */}
+          {/* Reference rings, faint */}
           {[85, 130, 170].map((r) => (
-            <circle key={r} cx={200} cy={200} r={r} fill="none" stroke="#f3efe6" strokeOpacity={0.08} />
+            <circle key={r} cx={200} cy={200} r={r} fill="none" stroke="#0b0d10" strokeOpacity={0.06} />
           ))}
 
           {/* You, at the center */}
           <g>
-            <circle cx={200} cy={200} r={26} fill="#1a1b1f" stroke="#ff5a1f" strokeWidth={3} />
+            <circle cx={200} cy={200} r={26} fill="#faf7f0" stroke="#ff5a1f" strokeWidth={3} />
             <text x={200} y={205} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#ff5a1f" fontFamily="Georgia, serif">
               YOU
             </text>
@@ -106,9 +105,9 @@ export function TravelerConstellation({
                   cx={x}
                   cy={y}
                   r={size}
-                  fill={isSelected ? "#ff5a1f" : "#f3efe6"}
+                  fill={isSelected ? "#ff5a1f" : "#0b0d10"}
                   fillOpacity={isSelected ? 1 : 0.85}
-                  stroke="#1a1b1f"
+                  stroke="#faf7f0"
                   strokeWidth={2}
                 />
               </g>

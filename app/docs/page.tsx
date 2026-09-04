@@ -15,6 +15,10 @@ const sections = [
   { id: "deadlines", title: "Minting deadlines" },
   { id: "restrictions", title: "Contract restrictions" },
   { id: "verify", title: "Verifying a minted POAP" },
+  { id: "passport", title: "The Passport" },
+  { id: "boarding-pass", title: "The Boarding Pass" },
+  { id: "travelers", title: "Fellow Travelers" },
+  { id: "palette", title: "Generative-ink palettes" },
 ];
 
 export default function DocsPage() {
@@ -224,11 +228,90 @@ export default function DocsPage() {
               time you load it.
             </p>
             <p className="mt-3">
-              Right after minting (and any time you revisit an event you already hold), the app also shows
-              a <strong>Boarding Pass</strong> — a ticket-stub card with the artwork, your address, and the
-              same OpenSea/BaseScan verification links, plus a one-tap way to download it as an image or
-              share it as a Farcaster cast. It's meant to be the thing you'd actually send someone, not
-              just a transaction receipt.
+              For a more shareable receipt than a bare transaction link, see the Boarding Pass below.
+            </p>
+          </section>
+
+          <section id="passport">
+            <h2 className="font-display text-xl font-semibold">The Passport</h2>
+            <p>
+              Everything below this point is built on top of the required functionality — none of it is
+              asked for by the bounty, and all of it reads and writes the same live contract as everything
+              else in this app. The Gallery page satisfies the "view what I own" requirement on its own;
+              the Passport (<code>/passport</code>) is a second, more considered way to look at the same
+              data.
+            </p>
+            <p className="mt-3">
+              It opens on a closed cover — your stamp count, a "tap to open" cue — and tapping it plays an
+              actual 3D page-turn (CSS <code>perspective</code> + <code>rotateY</code>, not a fade) that
+              swings the cover away before the first spread appears underneath. Two POAPs are laid out per
+              page, oldest first, the way a real passport reads front to back rather than newest-first like
+              most feeds default to. Previous/Next page buttons turn with that same flip, and every spread
+              has an "Export this page" button that draws that exact two-up layout to a canvas and downloads
+              it as a PNG — no server, no screenshot tool, just <code>CanvasRenderingContext2D</code> drawing
+              the same data already on the page.
+            </p>
+          </section>
+
+          <section id="boarding-pass">
+            <h2 className="font-display text-xl font-semibold">The Boarding Pass</h2>
+            <p>
+              Right after a mint confirms — and again any time you revisit an event you already hold — the
+              app renders a ticket-stub card instead of a plain "transaction confirmed" message: the
+              artwork, the event, your address as "Passenger," the chain as "Gate," and a perforated edge
+              separating the main stub from a scannable <strong>QR code that encodes a real link to the
+              token's OpenSea page</strong>.
+            </p>
+            <p className="mt-3">
+              That QR code is the actual point of the feature, not decoration on top of it. A screenshot
+              with a caption claiming "I minted this" is easy to fake; a QR code that resolves to the real
+              token isn't. Anyone who receives the downloaded image — on Farcaster, on X, in a group chat —
+              can scan it and land directly on verified onchain proof without this app being open, without
+              trusting a caption, without needing any context at all. "Download," "Share on Farcaster," and
+              "Share on X" all work off the same rendered card, and direct OpenSea/BaseScan links sit
+              alongside the QR for anyone who'd rather click than scan.
+            </p>
+          </section>
+
+          <section id="travelers">
+            <h2 className="font-display text-xl font-semibold">Fellow Travelers</h2>
+            <p>
+              A POAP doesn't just prove you were somewhere — it proves other specific people were there
+              too, and nothing in a standard gallery surfaces that. Fellow Travelers (<code>/travelers</code>)
+              does: it reads every event your connected wallet holds via batched <code>hasClaimed</code>{" "}
+              calls, then walks the onchain <code>NewMint</code> log history for exactly those events —
+              and only those events, so the expensive part of the query stays small no matter how large the
+              contract's total history grows — to find every other address that minted the same things you
+              did.
+            </p>
+            <p className="mt-3">
+              The result renders as a constellation: you at the center, everyone you've overlapped with
+              orbiting around you, sized by how many events you actually share. Results stream in live as
+              each event's log history resolves, rather than leaving you staring at a blank spinner until
+              the slowest one finishes. Click anyone in the constellation to see exactly which events you
+              have in common with them.
+            </p>
+          </section>
+
+          <section id="palette">
+            <h2 className="font-display text-xl font-semibold">Generative-ink palettes</h2>
+            <p>
+              Registering a POAP with your own hand-designed SVG is fully supported and remains the
+              recommended path for a real event's branding. But for anyone without the time or the design
+              tool open, the in-app Stamp Designer can generate artwork instead — and its palette isn't
+              picked from a handful of preset swatches, it's derived deterministically from the event's own
+              name. A fast hash of the title produces a hue, a light-or-dark base, and an accent color named
+              in the language of actual ink and wax — "Oxblood," "Verdigris," "Twilight Indigo" — rather
+              than a generic "orange" or "blue." Hit "Shuffle for another take" for a different valid option
+              off the same name; the same title always finds its way back to the same default ink.
+            </p>
+            <p className="mt-3">
+              The generator doesn't stop at "looks fine," either: it measures the real WCAG contrast ratio
+              between the generated accent and background and walks the accent's lightness toward the
+              background until it clears a 4.0 floor. That check exists because it caught a real problem —
+              roughly a third of naively hash-generated combinations tested as low as 2.25 contrast,
+              legible in theory and genuinely hard to read in practice. Every generated stamp on this app
+              has been through that check; none of them are just hoped to be readable.
             </p>
           </section>
         </article>

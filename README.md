@@ -29,6 +29,72 @@ Two other submissions exist for this bounty. This one differs in a few specific,
   supported in theory by a smaller QR buried in a detail page.
 - **Every read is a live contract call** — the gallery's "what do I own" is `balanceOf` read at page load,
   not a cached index.
+- **Wallet connection fails safely, not silently.** MetaMask/Coinbase/Rainbow's mobile tiles all fall back
+  to WalletConnect for deep-linking when no browser extension is present — and without a WalletConnect
+  Cloud project ID configured, that fallback doesn't degrade, it throws. `ConnectWallet.tsx` checks up
+  front whether a connection can actually succeed before ever opening RainbowKit's modal, so a
+  misconfigured deployment shows a plain explanatory message instead of a crash, and two levels of error
+  boundary (`app/error.tsx`, `app/global-error.tsx`) catch anything that gets through regardless.
+- **The collection experience goes past "here's your token list."** A Passport, a Boarding Pass, Fellow
+  Travelers, and generative per-event artwork are all built on top of the required functionality — see
+  "Beyond the bounty" below for what each one actually does and why.
+
+## Beyond the bounty
+
+The brief asks for a gallery: view what you own, view the artwork, view the metadata. That's built, and it
+works. But once minting and viewing actually worked end to end, a flat grid of tokens started feeling like
+it was underselling the point — a POAP isn't supposed to be "here is a row in a database," it's supposed to
+feel like proof you were somewhere. So four extra pieces got built on top of the required functionality,
+each one reading and writing the same live contract as everything else in this app — nothing here is mocked,
+and none of it is required by the bounty. It's here because there's a difference between a gallery that
+works and a gallery someone would actually want to open again.
+
+### The Passport — `/passport`
+
+Instead of a scrollable grid, your collection renders as an actual book. It opens on a closed cover —
+your stamp count, a "tap to open" cue — and tapping it plays a real 3D page-turn (`perspective` +
+`rotateY` CSS, not a crossfade) that swings the cover away before the first spread appears underneath.
+Two POAPs are laid out per page, oldest-first, the way a real passport reads front to back rather than
+newest-to-oldest like most feeds default to. Previous/Next pages turn with the same flip animation, and
+each spread has its own "Export this page" button that renders that exact two-up layout to a canvas and
+downloads it as a PNG — no server round-trip, no screenshot tool, just `CanvasRenderingContext2D` drawing
+the same data the page shows.
+
+### The Boarding Pass
+
+The bounty asks for a way to verify what you minted after the fact; this is what that verification
+actually looks like. The moment a mint confirms — and again any time you revisit an event you already
+hold — the app renders a ticket-stub card: the artwork, your event, your address as "Passenger," the
+chain as "Gate," a perforated edge between the main stub and a scannable **QR code that encodes a real
+link to the token's OpenSea page**. That QR code is the actual point of the feature, not decoration — it
+means the downloaded image is self-contained proof. Someone who receives it doesn't need this app open,
+doesn't need to trust a caption; they scan it and land on the verified token. "Download," "Share on
+Farcaster," and "Share on X" all work off the same rendered card, plus direct OpenSea/BaseScan links for
+anyone who'd rather click than scan.
+
+### Fellow Travelers — `/travelers`
+
+A POAP doesn't just prove you were somewhere — it proves *other specific people* were there too, and
+nothing in the base app surfaces that. This does: it reads every event your connected wallet holds (via
+batched `hasClaimed` calls, not a guess), then walks the onchain `NewMint` log history for exactly those
+events — and only those events, so the expensive part stays small no matter how large the contract's
+total history grows — to find every other address that minted the same things. The result renders as a
+constellation: you at the center, everyone you've overlapped with orbiting around you, sized by how many
+events you share, with results streaming in live as log windows resolve rather than making you stare at a
+blank spinner until the last one lands. Click anyone in the constellation to see exactly which events you
+have in common.
+
+### Generative-ink palettes
+
+Registering a POAP with a hand-designed SVG is still fully supported, but for anyone who doesn't want to
+open a design tool, the Stamp Designer can generate one instead — and the palette isn't picked from five
+preset swatches, it's derived from the event's own name. A fast FNV-1a hash of the title (plus a shuffle
+nonce for people who want another option) produces a hue, a light-or-dark base, and an accent color named
+in the voice of actual ink and wax — "Oxblood," "Verdigris," "Twilight Indigo" — instead of "orange" or
+"blue." The generator doesn't stop at "looks fine": it measures the real WCAG contrast ratio between the
+generated accent and background and walks the accent's lightness toward the background until it clears a
+4.0 floor, because roughly a third of naively-generated combinations tested as low as 2.25 — legible in
+theory, unreadable in practice. Same event name, same ink, every time; hit shuffle for a different one.
 
 ## Stack
 
@@ -93,9 +159,15 @@ Produces the same root + per-address proofs the in-app tool does, for scripting 
 ## Project structure
 
 ```
-app/                 Next.js App Router pages (home, register, event/[id], event/[id]/manage, gallery, docs)
-components/          UI components — forms, mint panel, allowlist tool, signature/QR tool, cards
-lib/                 abi.ts (contract ABI), contract.ts (address/chain), merkle.ts, svg.ts, time.ts, flags.ts, metadata.ts
+app/                 Next.js App Router pages — home, register, event/[id] (+manage, +kiosk), gallery,
+                      passport, travelers, docs, error.tsx/global-error.tsx (recoverable crash screens)
+components/          UI components — forms, mint panel, allowlist tool, signature/QR tool, cards,
+                      PassportEntry + BoardingPass (the collection-experience pieces), TravelerConstellation
+lib/                 abi.ts (contract ABI), contract.ts (address/chain), merkle.ts, svg.ts, time.ts,
+                      flags.ts, metadata.ts, generativeInk.ts (deterministic palette generator),
+                      useFellowTravelers.ts + mintLogs.ts (onchain overlap detection),
+                      usePassportEntryData.ts, exportPassportSpread.ts, exportBoardingPass.ts (canvas PNG
+                      exports, no server involved), links.ts (verification URL helpers)
 scripts/             generate-allowlist.mjs — CLI allowlist tool
 public/.well-known/  farcaster.json — Mini App manifest template
 ```

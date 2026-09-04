@@ -7,16 +7,23 @@
   "miniapp": {
     "version": "1",
     "name": "Onchain POAPs",
-    "iconUrl": "https://onchain-poaps-frontend-mu.vercel.app/icon.png",
     "homeUrl": "https://onchain-poaps-frontend-mu.vercel.app",
-    "imageUrl": "https://onchain-poaps-frontend-mu.vercel.app/og-image.png",
-    "buttonTitle": "Mint a POAP",
+    "iconUrl": "https://onchain-poaps-frontend-mu.vercel.app/icon.png",
     "splashImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/splash.png",
-    "splashBackgroundColor": "#faf7f0",
-
-    "subtitle": "Onchain proof of attendance",
-    "description": "Create, distribute, and collect fully onchain POAPs on Base — no IPFS, no backend.",
+    "splashBackgroundColor": "#000000",
+    "imageUrl": "https://onchain-poaps-frontend-mu.vercel.app/og-image.png",
+    "buttonTitle": "Open Onchain POAPs",
+    "subtitle": "Permanent attendance onchain",
+    "description": "Create, distribute, mint and collect fully onchain proof-of-attendance tokens on Base, then turn them into passports, traveler networks and shareable proof.",
     "primaryCategory": "art-creativity",
-    "tags": ["poap", "base", "onchain", "events", "collectibles"]
+    "tags": ["poap", "base", "onchain", "events", "attendance"],
+    "heroImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/hero-image.png",
+    "tagline": "Your journey, onchain forever",
+    "ogTitle": "Onchain POAPs",
+    "ogDescription": "Permanent proof of attendance, built directly on Base.",
+    "ogImageUrl": "https://onchain-poaps-frontend-mu.vercel.app/hero-image.png",
+    "canonicalDomain": "onchain-poaps-frontend-mu.vercel.app",
+    "noindex": false,
+    "requiredCapabilities": ["wallet.getEthereumProvider"]
   }
 }

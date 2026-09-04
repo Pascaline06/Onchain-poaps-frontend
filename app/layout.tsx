@@ -10,23 +10,55 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swa
 // Stripped of any trailing slash so `${appUrl}/og-image.png` etc. never
 // produces a double slash regardless of how NEXT_PUBLIC_APP_URL was typed
 // into the hosting provider's environment variable settings.
-const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://onchain-poaps.example.com").replace(/\/+$/, "");
+const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? "https://onchain-poaps-frontend-mu.vercel.app").replace(/\/+$/, "");
+
+const miniAppEmbed = {
+  version: "1",
+  imageUrl: `${appUrl}/og-image.png`,
+  button: {
+    title: "Open Onchain POAPs",
+    action: {
+      type: "launch_miniapp",
+      url: appUrl,
+      name: "Onchain POAPs",
+      splashImageUrl: `${appUrl}/splash.png`,
+      splashBackgroundColor: "#000000",
+    },
+  },
+};
+
+const frameEmbed = {
+  ...miniAppEmbed,
+  button: {
+    ...miniAppEmbed.button,
+    action: { ...miniAppEmbed.button.action, type: "launch_frame" },
+  },
+};
 
 export const metadata: Metadata = {
+  metadataBase: new URL(appUrl),
   title: "Onchain POAPs — Your Journey. Onchain Forever.",
   description:
-    "Create, distribute, and collect fully onchain Proof of Attendance tokens. No IPFS, no backend — every pixel of every badge lives on Base.",
+    "Create, distribute, mint and collect fully onchain proof of attendance on Base, then turn it into a permanent Event Passport.",
+  openGraph: {
+    title: "Onchain POAPs",
+    description: "Permanent proof of attendance, built directly on Base.",
+    url: appUrl,
+    siteName: "Onchain POAPs",
+    images: [{ url: `${appUrl}/hero-image.png`, width: 1200, height: 630, alt: "Onchain POAPs" }],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Onchain POAPs",
+    description: "Permanent proof of attendance, built directly on Base.",
+    images: [`${appUrl}/hero-image.png`],
+  },
   other: {
-    // Farcaster Mini App embed metadata — this is what makes a cast render
-    // an interactive card instead of a plain link. See docs for the full spec.
-    "fc:miniapp": JSON.stringify({
-      version: "1",
-      imageUrl: `${appUrl}/og-image.png`,
-      button: {
-        title: "Open Onchain POAPs",
-        action: { type: "launch_miniapp", url: appUrl, name: "Onchain POAPs", splashImageUrl: `${appUrl}/splash.png`, splashBackgroundColor: "#faf7f0" },
-      },
-    }),
+    // Farcaster Mini App feed embed. The legacy fc:frame tag is included
+    // as a compatibility fallback for clients that still inspect it.
+    "fc:miniapp": JSON.stringify(miniAppEmbed),
+    "fc:frame": JSON.stringify(frameEmbed),
   },
 };
 

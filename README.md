@@ -1,206 +1,564 @@
-# Onchain POAPs — Frontend
+# Onchain POAPs
 
-A fully functional, open-source frontend for the [OnchainPOAPs](https://github.com/jvaleskadevs/onchain-poaps)
-contract — works as a standalone website and as a Farcaster Mini App. Register events, run public /
-allowlist / signature-gated mints, manage distribution, and browse a real collection — all reading and
-writing the contract directly, with no backend and no mocked data.
+> **Permanent proof of attendance, built entirely around the chain.**
+>
+> Create an event, store its SVG artwork and metadata onchain, choose how attendance is distributed, let people mint, and turn those mints into a living passport of where they have shown up.
 
-## Why this one is different
+**Live app:** https://onchain-poaps-frontend-mu.vercel.app  
+**Contract:** https://sepolia.basescan.org/address/0xC3249356a483fbe17d5355D39105D2eA666d9de6  
+**Protocol source:** https://github.com/jvaleskadevs/onchain-poaps  
+**Frontend source:** https://github.com/Pascaline06/Onchain-poaps-frontend
 
-This implementation focuses on a few specific, checkable product and protocol strengths:
+---
 
-- **The allowlist tool actually matches the contract's leaf encoding** (`keccak256(abi.encodePacked(address))`,
-  no amount, no index) — a mismatch here is the single most common reason allowlist mints silently fail,
-  and it's covered by `lib/merkle.ts` plus a CLI script (`scripts/generate-allowlist.mjs`) so creators aren't
-  locked into using the browser.
-- **Signature minting ships with a real QR flow**, not just an explainer: the creator signs per-recipient
-  from their connected wallet, gets a QR code immediately, and the generated link pre-fills the mint page —
-  built for an actual door-of-an-event use case, not just described in docs.
-- **The bit-flag encoding (`flags` 0–3 for soulbound/public) is fully hidden** behind two plain toggles —
-  nobody registering a POAP needs to know the contract packs those two booleans into one `uint8`.
-- **SVG optimization runs in-browser via SVGO** before registration, with a visible before/after byte count,
-  since every byte is paid for onchain through SSTORE2.
-- **The Farcaster Mini App is a first-class connector**, not an iframe: `@farcaster/miniapp-wagmi-connector`
-  auto-connects the user's Farcaster wallet inside a Farcaster client, and `sdk.actions.ready()` is called
-  so the app doesn't hang behind Farcaster's splash screen.
-- **A dedicated Kiosk mode for live events** (`/event/[id]/kiosk`): a full-screen, projector-ready display
-  with a large QR code and a live mint counter read straight from the contract's `totalSupply(eventId)` —
-  built for the literal "QR on a screen, poster, or badge" scenario the bounty describes, not just
-  supported in theory by a smaller QR buried in a detail page.
-- **Every read is a live contract call** — the gallery's "what do I own" is `balanceOf` read at page load,
-  not a cached index.
-- **Wallet connection fails safely, not silently.** MetaMask/Coinbase/Rainbow's mobile tiles all fall back
-  to WalletConnect for deep-linking when no browser extension is present — and without a WalletConnect
-  Cloud project ID configured, that fallback doesn't degrade, it throws. `ConnectWallet.tsx` checks up
-  front whether a connection can actually succeed before ever opening RainbowKit's modal, so a
-  misconfigured deployment shows a plain explanatory message instead of a crash, and two levels of error
-  boundary (`app/error.tsx`, `app/global-error.tsx`) catch anything that gets through regardless.
-- **The collection experience goes past "here's your token list."** A Passport, a Boarding Pass, Fellow
-  Travelers, and generative per-event artwork are all built on top of the required functionality — see
-  "Beyond the bounty" below for what each one actually does and why.
+## What this project is
 
-## Beyond the bounty
+Onchain POAPs is a fully functional frontend for the supplied `OnchainPOAPs` ERC-1155 contract on **Base Sepolia**. It is designed to work in two places from the same codebase:
 
-The brief asks for a gallery: view what you own, view the artwork, view the metadata. That's built, and it
-works. But once minting and viewing actually worked end to end, a flat grid of tokens started feeling like
-it was underselling the point — a POAP isn't supposed to be "here is a row in a database," it's supposed to
-feel like proof you were somewhere. So several extra product layers got built on top of the required functionality,
-each one reading and writing the same live contract as everything else in this app — nothing here is mocked,
-and none of it is required by the bounty. It's here because there's a difference between a gallery that
-works and a gallery someone would actually want to open again.
+- as a normal standalone web application; and
+- as a **Farcaster Mini App** with Farcaster-native wallet access.
 
-### The Passport — `/passport`
+The frontend does not replace or modify the smart contract. The contract remains the source of truth for event registration, creator permissions, minting rules, deadlines, ownership, and metadata. The frontend's job is to make those rules understandable and usable by an organizer at a real event or by an attendee who simply wants to claim a POAP.
 
-Instead of a scrollable grid, your collection renders as an actual book. It opens on a closed cover —
-your stamp count, a "tap to open" cue — and tapping it plays a real 3D page-turn (`perspective` +
-`rotateY` CSS, not a crossfade) that swings the cover away before the first spread appears underneath.
-Two POAPs are laid out per page, oldest-first, the way a real passport reads front to back rather than
-newest-to-oldest like most feeds default to. Previous/Next pages turn with the same flip animation, and
-each spread has its own "Export this page" button that renders that exact two-up layout to a canvas and
-downloads it as a PNG — no server round-trip, no screenshot tool, just `CanvasRenderingContext2D` drawing
-the same data the page shows.
+There is no mocked contract layer. Contract reads and writes are performed through `wagmi`/`viem` against the deployed Base Sepolia contract.
 
-### Onchain Journey Orbit
+---
 
-The Passport now includes a visual attendance orbit: every owned POAP becomes a point around the traveler, using live event metadata from the contract. It is deliberately presentation-only — no invented offchain history — and gives the collection a memorable identity layer while keeping the underlying proof independently verifiable.
+# Why it is different
 
-### Organizer Command Center — `/organizer`
+Most POAP frontends stop at **create → mint → gallery**.
 
-Creators get a portfolio-level control room showing their events, live claim totals, an explicit onchain-activity reputation score, and direct routes into Manage, QR Kiosk, and public Event views. The score is a transparent heuristic based only on verifiable events created and POAP claims; it is not presented as a protocol-level trust oracle.
+This one keeps going.
 
-### The Boarding Pass
+A POAP is treated as more than a token card. It becomes a piece of a person's attendance identity and a permanent record an organizer can manage, distribute, verify, and share.
 
-The bounty asks for a way to verify what you minted after the fact; this is what that verification
-actually looks like. The moment a mint confirms — and again any time you revisit an event you already
-hold — the app renders a ticket-stub card: the artwork, your event, your address as "Passenger," the
-chain as "Gate," a perforated edge between the main stub and a scannable **QR code that encodes a real
-link to the token's OpenSea page**. That QR code is the actual point of the feature, not decoration — it
-means the downloaded image is self-contained proof. Someone who receives it doesn't need this app open,
-doesn't need to trust a caption; they scan it and land on the verified token. "Download," "Share on
-Farcaster," and "Share on X" all work off the same rendered card, plus direct OpenSea/BaseScan links for
-anyone who'd rather click than scan.
+That is why the app includes the full bounty-required contract experience **plus** a set of product layers built on top of the same live onchain data:
 
-### Fellow Travelers — `/travelers`
+- **Event Passport** — owned POAPs become a chronological attendance record rather than an isolated token grid.
+- **Journey Orbit** — a visual map of the POAPs in a connected wallet; every visible point corresponds to a real owned event, not fabricated history.
+- **Traveler Network** — discovers wallets that attended the same events by reading mint history for events the connected user actually owns.
+- **Organizer Command Center** — a creator-facing portfolio of events, claims, distribution controls, QR kiosk entry points, and management actions.
+- **Organizer Reputation** — a transparent activity score derived from verifiable events created and claims received. It is intentionally presented as a product heuristic, not a protocol-level trust oracle.
+- **POAP Proof Cards** — shareable attendance cards that preserve the original POAP artwork and link back to verifiable onchain evidence.
 
-A POAP doesn't just prove you were somewhere — it proves *other specific people* were there too, and
-nothing in the base app surfaces that. This does: it reads every event your connected wallet holds (via
-batched `hasClaimed` calls, not a guess), then walks the onchain `NewMint` log history for exactly those
-events — and only those events, so the expensive part stays small no matter how large the contract's
-total history grows — to find every other address that minted the same things. The result renders as a
-constellation: you at the center, everyone you've overlapped with orbiting around you, sized by how many
-events you share, with results streaming in live as log windows resolve rather than making you stare at a
-blank spinner until the last one lands. Click anyone in the constellation to see exactly which events you
-have in common.
+The result is not just a contract dashboard. It is an attendance product.
 
-### Generative-ink palettes
+---
 
-Registering a POAP with a hand-designed SVG is still fully supported, but for anyone who doesn't want to
-open a design tool, the Stamp Designer can generate one instead — and the palette isn't picked from five
-preset swatches, it's derived from the event's own name. A fast FNV-1a hash of the title (plus a shuffle
-nonce for people who want another option) produces a hue, a light-or-dark base, and an accent color named
-in the voice of actual ink and wax — "Oxblood," "Verdigris," "Twilight Indigo" — instead of "orange" or
-"blue." The generator doesn't stop at "looks fine": it measures the real WCAG contrast ratio between the
-generated accent and background and walks the accent's lightness toward the background until it clears a
-4.0 floor, because roughly a third of naively-generated combinations tested as low as 2.25 — legible in
-theory, unreadable in practice. Same event name, same ink, every time; hit shuffle for a different one.
+# Bounty requirements — implemented
 
-## Stack
+## 1. POAP registration
 
-Next.js 14 (App Router) · wagmi v2 + viem · RainbowKit · `@farcaster/miniapp-sdk` +
-`@farcaster/miniapp-wagmi-connector` · `merkletreejs` · `svgo` · `qrcode.react` · Tailwind CSS.
+The registration flow calls the contract's `register` function and exposes the supported event parameters:
 
-## Contract
+- POAP name
+- SVG artwork
+- soulbound / transferable setting
+- public mint enabled / disabled
+- optional allowlist root at registration
+- optional description
+- optional location
+- optional event date
+- optional external project URL
 
-Base Sepolia: [`0xC3249356a483fbe17d5355D39105D2eA666d9de6`](https://sepolia.basescan.org/address/0xC3249356a483fbe17d5355D39105D2eA666d9de6)
-(from [jvaleskadevs/onchain-poaps](https://github.com/jvaleskadevs/onchain-poaps)). This frontend never
-modifies the contract — `lib/abi.ts` is copied verbatim from the compiled artifact and every write goes
-through the contract's existing public interface.
+SVG input is optimized in-browser with **SVGO** before registration. The UI shows the optimized result and size information rather than expecting event organizers to understand SVG optimization tooling first.
 
-## Local development
+### Why SVG handling matters
 
-```bash
-git clone <this-repo-url>
-cd onchain-poaps-frontend
-npm install
-cp .env.example .env.local
-# fill in NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID (free at https://cloud.walletconnect.com)
-npm run dev
+The event artwork is part of the permanent record. The app therefore preserves each event's real artwork rather than substituting generic cards or offchain thumbnails. The Gallery, event pages, Passport, and proof surfaces all read the event artwork/metadata generated by the contract.
+
+---
+
+## 2. Every contract mint path
+
+The frontend supports all three recipient mint mechanisms exposed by the contract.
+
+### Public mint
+
+When public minting is open, any eligible wallet can claim from the event page. The current state is surfaced clearly so a user does not have to infer it from a failed transaction.
+
+### Allowlist mint
+
+Eligible recipients can submit the Merkle proof produced by the creator workflow and claim through the contract's allowlist path.
+
+The implementation matches the contract leaf encoding:
+
+```text
+keccak256(abi.encodePacked(address))
 ```
 
-Open `http://localhost:3000`. Connect a wallet on Base Sepolia (get testnet ETH from the
-[Base Sepolia faucet](https://www.alchemy.com/faucets/base-sepolia)) and register your first POAP.
+This matters because a Merkle tree that uses a different leaf shape can look perfectly valid in a UI but can never verify against the contract.
 
-## Deploying the standalone site
+### Signature mint
 
-Any static/Node host works; the reference deployment is Vercel:
+Creators can produce per-recipient signatures for the contract's signature-mint path. Signature distribution is designed for live events, including QR links that open the relevant event with the signature prefilled.
 
-```bash
-npm i -g vercel
-vercel
-```
+The app communicates the contract's **37-day signature-mint window** instead of treating signed links as timeless.
 
-Set the same environment variables from `.env.local` in the Vercel project settings, with
-`NEXT_PUBLIC_APP_URL` set to your final production URL (needed for the Mini App embed metadata and
-signature-mint QR links).
+### Before and after minting
 
-## Deploying as a Farcaster Mini App
+Before a transaction, the user sees the event artwork and metadata they are about to claim. Afterward, the UI exposes verification paths back to BaseScan/OpenSea-style token evidence and the app's own proof-card experience.
 
-The website *is* the Mini App — there's no separate build. Two things are still required beyond a normal
-deploy:
+---
 
-1. Update every URL in `public/.well-known/farcaster.json` to your real production domain.
-2. Sign the `accountAssociation` block for that domain from your Farcaster account. See
-   `MANIFEST_SETUP.md` for the exact steps — this can't be faked or skipped; Farcaster verifies it against
-   your custody address before treating the app as a real Mini App.
+## 3. Allowlist management without Merkle-tree expertise
 
-Once that's live, casting a link to your app's URL (or using the Mini App embed) will render an
-interactive card in Warpcast rather than a plain link preview.
+The creator workflow turns a plain list of wallet addresses into:
 
-## Generating an allowlist without the UI
+1. normalized recipients;
+2. the Merkle root expected by the contract; and
+3. per-wallet proofs that can be distributed to attendees.
+
+Creators can therefore go from **"I have a list of addresses"** to a contract-ready allowlist without manually building a tree.
+
+For teams that want a scriptable version, the repository also includes:
 
 ```bash
 node scripts/generate-allowlist.mjs addresses.txt > allowlist.json
 ```
 
-Produces the same root + per-address proofs the in-app tool does, for scripting distribution.
+The browser flow and CLI use the same proof model.
 
-## Project structure
+---
 
+## 4. Public mint controls
+
+Creators can open or close public minting from the event management surface during the contract's creator-control period.
+
+The UI tracks and explains the **30-day creator window** so the control is shown as a time-limited contract permission, not a permanent admin switch.
+
+---
+
+## 5. Signature and QR distribution for real events
+
+The app includes a creator-facing signature guide and live-event workflow covering:
+
+- what is being signed;
+- who can sign;
+- how the recipient uses the signature;
+- the 37-day deadline;
+- QR distribution; and
+- kiosk-style event usage.
+
+Each event can expose a **QR Kiosk** route so an organizer can place a live claim flow on a screen, poster, badge station, or event desk.
+
+---
+
+## 6. Gallery and ownership
+
+The Gallery is not a transaction-log viewer. It presents the contract's events as a browsable collection with:
+
+- each event's original onchain artwork;
+- event name and metadata;
+- location when supplied;
+- public / allowlist / soulbound state;
+- search and filters;
+- individual event pages; and
+- ownership-aware views for connected wallets.
+
+---
+
+# The product layer built on top
+
+## Event Passport — `/passport`
+
+A connected wallet's POAPs are assembled into a permanent attendance record.
+
+The Passport summarizes:
+
+- total POAPs;
+- events attended;
+- locations represented by event metadata;
+- organizers represented in the collection; and
+- the visual **Journey Orbit**.
+
+The Passport is deliberately derived from owned POAPs. If a wallet owns zero relevant tokens, the Orbit is empty rather than inventing a history for visual effect.
+
+---
+
+## Journey Orbit — `/passport#journey-orbit`
+
+Journey Orbit is the visual identity layer of the Passport.
+
+Every orbiting event marker represents one POAP owned by the connected wallet. Where artwork is available, the marker uses that event's original onchain image. The same events are also listed below the visualization so the experience remains understandable and usable on small screens.
+
+It is a visualization of verifiable attendance, not an offchain reputation feed.
+
+---
+
+## Traveler Network — `/travelers`
+
+Attendance is inherently social: if two wallets claimed the same event, they crossed paths in the same onchain attendance graph.
+
+Traveler Network:
+
+1. determines which events the connected wallet actually owns;
+2. reads `NewMint` history for those relevant events;
+3. discovers other wallets that claimed the same events; and
+4. shows the overlap as a traveler constellation.
+
+This keeps the feature grounded in contract history instead of requiring a separate social database.
+
+---
+
+## Organizer Command Center — `/organizer`
+
+The organizer view turns creator permissions into a real control surface.
+
+It brings together:
+
+- events created by the connected wallet;
+- total claims;
+- event-level management;
+- public-mint controls;
+- allowlist management;
+- signature/QR workflows;
+- QR kiosk shortcuts;
+- public event links; and
+- organizer reputation.
+
+The intent is simple: an organizer should be able to operate a real POAP campaign without jumping between contract explorers and external Merkle/QR utilities.
+
+---
+
+## Organizer Reputation — `/organizer#reputation`
+
+Organizer Reputation is a transparent, product-level score based on verifiable activity such as events created and POAP claims.
+
+It is **not** presented as an objective identity score, financial rating, or protocol primitive. Its purpose is to help users quickly understand whether an organizer has a meaningful onchain event history while keeping the source activity inspectable.
+
+---
+
+## POAP Proof Cards — `/proof`
+
+The Proof hub lets a connected wallet open shareable proof experiences for POAPs it owns.
+
+A proof card combines:
+
+- the original event artwork;
+- event identity;
+- the holder's wallet;
+- onchain verification context; and
+- sharing/verification actions.
+
+The card is designed to be useful outside the app: the visual proof points back to the underlying chain record rather than asking someone to trust a screenshot.
+
+---
+
+# Farcaster Mini App
+
+The same deployment is also a Farcaster Mini App. It is not a second mocked frontend or a simple iframe wrapper.
+
+The integration uses:
+
+- `@farcaster/miniapp-sdk`
+- `@farcaster/miniapp-wagmi-connector`
+- the Farcaster-provided EIP-1193 Ethereum provider
+- `sdk.actions.ready()` for proper Mini App loading
+- runtime Mini App detection
+- automatic connection to the user's Farcaster wallet inside a Farcaster client
+- standard browser/RainbowKit wallet handling outside Farcaster
+- `fc:miniapp` metadata for feed embeds
+- `fc:frame` fallback metadata for compatibility
+- a signed `accountAssociation` in `/.well-known/farcaster.json`
+
+Inside Farcaster, users do not need the normal "pick a wallet" experience used by standalone dapps. The app connects through the wallet exposed by the host client and then uses the same contract read/write code as the standalone website.
+
+### Manifest
+
+The production manifest is served from:
+
+```text
+https://onchain-poaps-frontend-mu.vercel.app/.well-known/farcaster.json
 ```
-app/                 Next.js App Router pages — home, register, event/[id] (+manage, +kiosk), gallery,
-                      events, passport, travelers, organizer, proof/[eventId], docs, and error screens
-components/          UI components — forms, mint panel, allowlist tool, signature/QR tool, cards,
-                      PassportEntry + BoardingPass (the collection-experience pieces), TravelerConstellation
-lib/                 abi.ts (contract ABI), contract.ts (address/chain), merkle.ts, svg.ts, time.ts,
-                      flags.ts, metadata.ts, generativeInk.ts (deterministic palette generator),
-                      useFellowTravelers.ts + mintLogs.ts (onchain overlap detection),
-                      usePassportEntryData.ts, exportPassportSpread.ts, exportBoardingPass.ts (canvas PNG
-                      exports, no server involved), links.ts (verification URL helpers)
-scripts/             generate-allowlist.mjs — CLI allowlist tool
-public/.well-known/  farcaster.json — Mini App manifest template
+
+It identifies the production domain, launch URL, artwork, category, supported capability, and signed Farcaster account association.
+
+The domain in the signed association must exactly match the deployed domain. If the production domain changes, the association must be regenerated through Farcaster's developer tooling.
+
+---
+
+# Smart-contract compatibility
+
+The frontend does **not** modify the supplied smart contract.
+
+Base Sepolia contract:
+
+```text
+0xC3249356a483fbe17d5355D39105D2eA666d9de6
 ```
 
-## Testing against the real contract
+Explorer:
 
-There is no mock layer. Every read (`useReadContract`) and write (`useWriteContract`) in this app targets
-the deployed Base Sepolia contract via the RPC configured in `.env.local`. The table below isn't a claim —
-every one of these was run through this deployed frontend and confirmed onchain; the links go straight to
-the transaction on BaseScan.
+https://sepolia.basescan.org/address/0xC3249356a483fbe17d5355D39105D2eA666d9de6
 
-| Mechanism | Result | Evidence |
-| --- | --- | --- |
-| Public mint | Confirmed | [Transaction](https://sepolia.basescan.org/tx/0xbbaaebe80ee0eed51bfe2e5d1d9cd34024229d44e31aa84d0185c99903f2bdde) — Mint 1 of ERC-1155, event #8 |
-| Allowlist: build tree, lock root, redeem proof | Confirmed | [Mint transaction](https://sepolia.basescan.org/tx/0xf601cd5726ef7ca81df940a2c69ed1c29755a347d7448813e4f8dceda7b5b721) — event #9 |
-| Signature mint: sign off-chain, redeem onchain | Confirmed | Event #10 — signed and redeemed through the live app |
-| Public mint toggle: open | Confirmed | [`EventPublicUpdated(eventId=13, isPublic=true)`](https://sepolia.basescan.org/tx/0xaae260b82f662f98da1ebacdf185fb88c47c3fa24c42ad01a24c21d4ccafb80a) |
-| Public mint toggle: close | Confirmed | [`EventPublicUpdated(eventId=13, isPublic=false)`](https://sepolia.basescan.org/tx/0xeb52bfa31f91790005d1c26b844fdfd445fab220753c882bc0f387ef0c0ae4af) |
-| Creator batch mint | Confirmed | [`NewMint(eventId=13, recipient=...)`](https://sepolia.basescan.org/tx/0xfc6dbb88b7f5cd2323eb22d740244c630f6e135d0127214cea77e9861655bf5e) |
+Protocol repository:
 
-To reproduce any of these yourself: register an event, open public minting, mint it from a second wallet,
-and confirm the transaction on [BaseScan](https://sepolia.basescan.org) and the token on
-[OpenSea testnets](https://testnets.opensea.io).
+https://github.com/jvaleskadevs/onchain-poaps
 
-## License
+The ABI/configuration in this repository is used to call the contract's existing interface and preserve its permission/deadline model.
 
-MIT — see `LICENSE`. Fork it, deploy your own instance, change the theme — nothing here is tied to a
-specific deployment or maintainer.
+---
+
+# Verified onchain flows
+
+The project was exercised against the deployed Base Sepolia contract rather than a mock contract.
+
+| Flow | Evidence |
+| --- | --- |
+| Public mint | https://sepolia.basescan.org/tx/0xbbaaebe80ee0eed51bfe2e5d1d9cd34024229d44e31aa84d0185c99903f2bdde |
+| Allowlist mint | https://sepolia.basescan.org/tx/0xf601cd5726ef7ca81df940a2c69ed1c29755a347d7448813e4f8dceda7b5b721 |
+| Public mint opened | https://sepolia.basescan.org/tx/0xaae260b82f662f98da1ebacdf185fb88c47c3fa24c42ad01a24c21d4ccafb80a |
+| Public mint closed | https://sepolia.basescan.org/tx/0xeb52bfa31f91790005d1c26b844fdfd445fab220753c882bc0f387ef0c0ae4af |
+| Creator batch mint | https://sepolia.basescan.org/tx/0xfc6dbb88b7f5cd2323eb22d740244c630f6e135d0127214cea77e9861655bf5e |
+
+Signature minting is also implemented in the live UI and uses the contract's signed-recipient flow, including QR deep links.
+
+---
+
+# Architecture
+
+```text
+Standalone browser                    Farcaster client
+       │                                     │
+       │ RainbowKit / wallet                 │ Farcaster wallet provider
+       │                                     │
+       └──────────────┬──────────────────────┘
+                      │
+                   wagmi + viem
+                      │
+                      ▼
+              OnchainPOAPs contract
+                 Base Sepolia
+                      │
+       ┌──────────────┼───────────────┐
+       │              │               │
+   event data      ownership       mint logs
+       │              │               │
+       └──────────────┼───────────────┘
+                      ▼
+     Gallery / Passport / Travelers / Organizer / Proof
+```
+
+There is no application database required for the core experience. The chain is the durable record.
+
+---
+
+# Tech stack
+
+- **Next.js 14** — App Router
+- **React 18**
+- **TypeScript**
+- **wagmi v2 + viem** — contract reads/writes
+- **RainbowKit** — standalone wallet UX
+- **Farcaster Mini App SDK + wagmi connector** — native Mini App wallet UX
+- **TanStack Query** — client query state
+- **Tailwind CSS** — layout/styling
+- **SVGO** — browser-side SVG optimization
+- **merkletreejs** — allowlist root/proof generation
+- **qrcode.react** — signature/event QR flows
+
+---
+
+# Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Product overview and event discovery |
+| `/register` | Create/register a POAP |
+| `/events` | Explore registered events |
+| `/event/[id]` | Event details + minting |
+| `/event/[id]/manage` | Creator controls |
+| `/event/[id]/kiosk` | Live-event QR/kiosk flow |
+| `/gallery` | Collection/gallery experience |
+| `/passport` | Event Passport + Journey Orbit |
+| `/travelers` | Fellow Traveler network |
+| `/organizer` | Organizer Command Center + Reputation |
+| `/proof` | Owned POAP proof hub |
+| `/proof/[eventId]` | Shareable POAP proof card |
+| `/docs` | Full user/organizer documentation |
+
+---
+
+# Local development
+
+## Prerequisites
+
+- Node.js 20+ recommended
+- npm
+- a Base-compatible wallet
+- Base Sepolia ETH for testing
+- a WalletConnect project ID for the standalone mobile-wallet flow
+
+## Setup
+
+```bash
+git clone https://github.com/Pascaline06/Onchain-poaps-frontend.git
+cd Onchain-poaps-frontend
+npm install
+cp .env.example .env.local
+```
+
+Fill the required public environment variables in `.env.local`.
+
+A typical deployment uses:
+
+```env
+NEXT_PUBLIC_RPC_URL_BASE_SEPOLIA=https://sepolia.base.org
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=your_walletconnect_project_id
+NEXT_PUBLIC_APP_URL=https://your-domain.example
+```
+
+Then run:
+
+```bash
+npm run dev
+```
+
+Open:
+
+```text
+http://localhost:3000
+```
+
+---
+
+# Production deployment
+
+The reference deployment uses Vercel.
+
+1. Import the GitHub repository into Vercel.
+2. Add the same environment variables used locally.
+3. Set `NEXT_PUBLIC_APP_URL` to the final production origin with no path.
+4. Deploy.
+5. Confirm the standalone app works.
+6. Confirm `/.well-known/farcaster.json` is publicly reachable.
+7. Validate the Mini App in Farcaster Developer Tools.
+
+Because the Farcaster manifest and account association are domain-bound, use a stable production domain before publishing the Mini App broadly.
+
+---
+
+# Publishing the Farcaster Mini App
+
+After deploying the production code:
+
+1. Open Farcaster Developer Tools.
+2. Validate the production domain and manifest.
+3. Preview the Mini App and test wallet connection/mint flows inside Farcaster.
+4. Publish/register the app from the developer interface.
+5. Copy the resulting Farcaster Mini App link for the bounty claim.
+6. Cast the Mini App and include:
+   - the Mini App;
+   - the standalone frontend link;
+   - the GitHub repository link;
+   - `@jvaleska.eth`; and
+   - `@kenny`.
+7. Take the required screenshot and save the cast URL for the POIDH claim.
+
+See `MANIFEST_SETUP.md` for the domain/manifest verification checklist.
+
+---
+
+# Project structure
+
+```text
+app/
+  docs/                    Complete product/protocol documentation
+  event/[id]/              Event mint/details
+  event/[id]/manage/       Creator controls
+  event/[id]/kiosk/        Live-event QR distribution
+  events/                  Event discovery
+  gallery/                 Collection gallery
+  organizer/               Organizer Command Center
+  passport/                Event Passport + Journey Orbit
+  proof/                   Proof hub
+  proof/[eventId]/          Individual proof card
+  register/                Event registration
+  travelers/               Traveler Network
+
+components/
+  AllowlistManager.tsx      Address list → root/proof workflow
+  ConnectWallet.tsx        Standalone/mobile wallet UX
+  JourneyOrbit.tsx         Owned-event orbit visualization
+  MintPanel.tsx             Mint mechanism UX
+  OrganizerReputation.tsx  Verifiable organizer activity summary
+  RegisterForm.tsx         Contract registration workflow
+  SignatureGuide.tsx       Signature/QR creator workflow
+  TravelerConstellation.tsx Onchain attendee-overlap visualization
+  ...
+
+lib/
+  abi.ts                    Contract ABI
+  contract.ts               Chain/address configuration
+  merkle.ts                 Contract-compatible Merkle tree/proofs
+  metadata.ts               Onchain metadata helpers
+  mintLogs.ts               Mint-event history retrieval
+  useOwnedEvents.ts         Ownership-derived event collection
+  useFellowTravelers.ts     Shared-attendance discovery
+  wagmi.ts                  Standalone wallet/chain configuration
+  ...
+
+public/.well-known/
+  farcaster.json            Farcaster Mini App manifest
+```
+
+---
+
+# Design principles
+
+### The chain is the source of truth
+
+The UI can disappear without taking the POAP record with it.
+
+### Explain before asking for a signature
+
+Public minting, allowlists, signature minting, soulbound tokens, deadlines, and creator permissions are explained in plain language instead of exposed as unlabeled contract toggles.
+
+### Preserve the event's identity
+
+Event cards and proof surfaces use the event's own artwork. The product does not replace real POAP artwork with generic UI graphics.
+
+### Useful at the door of an event
+
+QR distribution, kiosk mode, allowlist tooling, mobile wallet handling, and Farcaster-native connection are there because an attendance product has to survive real-world use, not only a desktop demo.
+
+### Never fake the attendance graph
+
+Passport statistics, Journey Orbit, Traveler overlap, and organizer activity are derived from contract/ownership data. Empty wallets show empty states.
+
+---
+
+# Documentation
+
+The in-app `/docs` section covers:
+
+- creating a POAP;
+- metadata;
+- SVG requirements and optimization;
+- soulbound vs transferable POAPs;
+- public minting;
+- allowlists and Merkle proofs;
+- signature minting;
+- QR distribution;
+- creator permissions;
+- contract deadlines/restrictions;
+- verification;
+- Gallery;
+- Event Passport;
+- Journey Orbit;
+- Traveler Network;
+- Organizer Command Center;
+- Organizer Reputation;
+- Proof Cards; and
+- Farcaster Mini App behavior.
+
+The goal is that an organizer or developer can use the system without needing the bounty author to explain it privately.
+
+---
+
+# License
+
+MIT — see [`LICENSE`](./LICENSE).
+
+Fork it, redeploy it, change the interface, or build another experience around the same protocol.

@@ -1,0 +1,41 @@
+{
+  "name": "onchain-poaps-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "generate-allowlist": "node scripts/generate-allowlist.mjs"
+  },
+  "dependencies": {
+    "@farcaster/miniapp-sdk": "^0.2.3",
+    "@farcaster/miniapp-wagmi-connector": "^1.1.1",
+    "@rainbow-me/rainbowkit": "^2.2.1",
+    "@tanstack/react-query": "^5.59.0",
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.4.14",
+    "merkletreejs": "^0.3.11",
+    "next": "14.2.35",
+    "qrcode.react": "^4.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "svgo": "^3.3.2",
+    "viem": "^2.21.0",
+    "wagmi": "^2.12.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "typescript": "^5.6.0"
+  }
+}

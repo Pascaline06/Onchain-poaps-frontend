@@ -1,0 +1,13 @@
+"use client";
+import { useMemo } from "react";
+import { useAccount, useReadContract, useReadContracts } from "wagmi";
+import { POAP_ABI } from "@/lib/abi";
+import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
+import { decodeTokenUri } from "@/lib/metadata";
+
+export function JourneyOrbit({ eventIds }: { eventIds: bigint[] }) {
+  const { chainId: connected } = useAccount(); const chainId = connected ?? DEFAULT_CHAIN.id;
+  const { data } = useReadContracts({ contracts: eventIds.map(id=>({address:contractAddress(chainId),abi:POAP_ABI,functionName:"events" as const,args:[id] as const})), query:{enabled:eventIds.length>0} });
+  const points = useMemo(()=> (data??[]).map((r,i)=>{ if(r.status!=="success"||!r.result)return null; const [name,,date,location,,,,]=r.result as any; const angle=(i/Math.max(1,eventIds.length))*Math.PI*2-Math.PI/2; return {id:eventIds[i],name,location,date,x:50+37*Math.cos(angle),y:50+37*Math.sin(angle)} }).filter(Boolean) as any[],[data,eventIds]);
+  return <div className="noise relative min-h-[380px] overflow-hidden rounded-3xl border border-ink/10 bg-[#070707] p-6 text-white sm:min-h-[440px]"><div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgb(255_90_31/.13),transparent_35%)]"/><div className="absolute left-1/2 top-1/2 h-[58%] w-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10"/><div className="absolute left-1/2 top-1/2 h-[78%] w-[78%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/5"/><div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#ff6b1a] bg-[#111] shadow-[0_0_60px_rgba(255,90,31,.25)]"><div className="flex h-full items-center justify-center text-center text-[10px] font-black uppercase tracking-widest">Your<br/>Journey</div></div>{points.map((p:any)=><div key={p.id.toString()} className="absolute -translate-x-1/2 -translate-y-1/2" style={{left:`${p.x}%`,top:`${p.y}%`}}><div className="h-3 w-3 rounded-full bg-[#ff6b1a] shadow-[0_0_20px_rgba(255,107,26,.8)]"/><div className="absolute left-1/2 top-4 hidden w-32 -translate-x-1/2 text-center sm:block"><p className="truncate text-[10px] font-bold">{p.name}</p><p className="truncate text-[9px] text-white/40">{p.location||"Onchain"}</p></div></div>)}<div className="absolute left-5 top-5"><p className="font-mono text-[10px] uppercase tracking-[.2em] text-[#ff6b1a]">WOW FEATURE</p><h3 className="mt-1 text-xl font-black">Onchain Journey Orbit</h3><p className="mt-1 max-w-xs text-xs text-white/45">Every POAP becomes a point in your permanent attendance history.</p></div></div>;
+}

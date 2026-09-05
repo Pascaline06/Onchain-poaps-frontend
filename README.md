@@ -163,6 +163,9 @@ The Gallery is not a transaction-log viewer. It presents the contract's events a
 
 # The product layer built on top
 
+The contract handles permanent attendance proofs. The product layer turns those proofs into **identity, geography, chronology, social context, organizer operations, live event telemetry and independent verification**.
+
+
 ## Event Passport — `/passport`
 
 A connected wallet's POAPs are assembled into a permanent attendance record.
@@ -181,9 +184,17 @@ The Passport is deliberately derived from owned POAPs. If a wallet owns zero rel
 
 ## Journey Atlas — `/passport#journey-orbit`
 
-Journey Atlas combines two views of attendance that are more useful together than apart: **where** an event happened and **when** it happened. Recognized event locations are pinned to a world map and connected in attendance order. Events whose free-form location cannot be safely resolved are kept in the chronology rather than placed at invented coordinates.
+Journey Atlas is the visual heart of the Passport. It combines **where**, **when**, and **which proof** into one interactive attendance story instead of treating a wallet like a flat token list.
 
-Every pin still points to the real event page and original onchain artwork. The map is therefore an interface over owned POAP data, not decorative geography.
+The Atlas has three synchronized views:
+
+- **Hybrid** — geographic map + chronological journey together;
+- **Map** — real event locations pinned to a world map; and
+- **Journey** — the same owned POAPs arranged as a living chronological sequence.
+
+Recognized locations are mapped honestly. Free-form or missing locations are never assigned invented coordinates; those events stay visible as chronology-only stops. Selecting a stop highlights the corresponding proof, and the live journey mode advances through the wallet's history so the collection feels like a record unfolding rather than a static dashboard.
+
+Every stop still resolves back to the real event page and original onchain artwork. The animation is therefore driven by owned POAP data, not decorative motion.
 
 ---
 
@@ -193,22 +204,28 @@ The timeline turns the same owned events into a clean chronological history with
 
 ---
 
-## Traveler Network — `/travelers`
+## Traveler Network + Traveler Resonance — `/travelers`
 
 Attendance is inherently social: if two wallets claimed the same event, they crossed paths in the same onchain attendance graph.
 
-Traveler Network:
+The Traveler Network:
 
 1. determines which events the connected wallet actually owns;
-2. reads `NewMint` history for those relevant events;
+2. reads `NewMint` history only for those relevant events;
 3. discovers other wallets that claimed the same events; and
-4. shows the overlap as a traveler constellation.
+4. turns that verified overlap into an interactive social view.
 
-This keeps the feature grounded in contract history instead of requiring a separate social database.
+### Traveler Resonance
+
+Traveler Resonance is the visual layer for that social graph. Instead of drawing a generic node chart, the connected wallet is represented by a **single large kinetic form that continuously changes shape** as the graph resolves. Verified fellow travelers appear around it as distinct geometric signals, and stronger overlap sits closer to the center with brighter transmission paths.
+
+If there is no verified overlap yet, the visualization remains alive but says so explicitly rather than inventing people. Once shared attendance exists, those signals lock into the graph and become selectable.
+
+The goal is simple: make **“who did I show up with?”** as memorable as **“what POAPs do I own?”** without introducing a private social database.
 
 ### Traveler Reputation
 
-The Traveler page also includes a participation score that uses event count, location diversity, organizer diversity and verified fellow-traveler overlap. It intentionally excludes wallet balance, token price and NFT value so the score rewards showing up rather than spending.
+The Traveler page also includes a transparent participation score built from event diversity, location diversity, organizer diversity and verified fellow-traveler overlap. It intentionally excludes wallet balance, token price and NFT value, so reputation measures participation rather than spending power.
 
 ---
 
@@ -259,6 +276,64 @@ A proof card combines:
 - sharing/verification actions.
 
 The card is designed to be useful outside the app: the visual proof points back to the underlying chain record rather than asking someone to trust a screenshot.
+
+---
+
+## Live Attendance Pulse + Event Replay — `/event/[id]`
+
+This turns an event page into something useful **during the event**, not only before or after it.
+
+### Live Attendance Pulse
+
+The live mode listens for verified `NewMint` activity and turns attendance into a visible event signal. The panel shows:
+
+- current onchain supply;
+- latest verified arrival when available;
+- live reaction to new mints;
+- a kinetic event core that grows with participation; and
+- clear fallback messaging when historical logs fall outside the RPC scan budget.
+
+No attendee is simulated. If historical arrivals cannot be recovered, the UI says that explicitly and continues listening for the next verified mint.
+
+### Event Replay
+
+When historical mint logs are available, Replay rebuilds the event from its earliest verified claim forward. Attendees appear in sequence so an organizer can watch the room become onchain again after the event has ended. If history is unavailable, Replay is clearly marked unavailable instead of pretending to work.
+
+This creates a full lifecycle:
+
+**configure → distribute → mint live → watch attendance happen → replay it later → verify forever.**
+
+---
+
+## Event Proof Ledger — `/event/[id]`
+
+Every event detail page includes a readable verification ledger answering one question: **what can be checked without trusting this frontend?**
+
+The ledger surfaces contract-backed facts such as:
+
+- event existence / event ID;
+- decoded onchain metadata;
+- soulbound or transferable ownership model;
+- active distribution mode;
+- minted supply / claims; and
+- creator address.
+
+It deliberately sits beside the visual proof experience: the **Proof Card** is the human-readable artifact, while the **Proof Ledger** is the technical checklist behind it.
+
+---
+
+## Motion and microinteractions
+
+Animation is used to explain state, not as decoration. The app includes:
+
+- Journey Atlas live progression and selected-stop transitions;
+- route/pulse motion between chronological POAP stops;
+- Traveler Resonance shape morphing and verified-overlap signals;
+- Live Attendance Pulse reactions to new mints;
+- animated organizer analytics and reputation feedback; and
+- subtle hover/tap/focus transitions across cards and controls.
+
+Reduced-motion preferences are respected so the experience remains usable and accessible.
 
 ---
 
@@ -384,7 +459,7 @@ There is no application database required for the core experience. The chain is 
 | `/` | Product overview and event discovery |
 | `/register` | Create/register a POAP |
 | `/events` | Explore registered events |
-| `/event/[id]` | Event details + minting |
+| `/event/[id]` | Event details + minting + Live Attendance Pulse + Replay + Proof Ledger |
 | `/event/[id]/manage` | Creator controls |
 | `/event/[id]/kiosk` | Live-event QR/kiosk flow |
 | `/gallery` | Collection/gallery experience |
@@ -502,7 +577,8 @@ components/
   OrganizerReputation.tsx  Verifiable organizer activity summary
   RegisterForm.tsx         Contract registration workflow
   SignatureGuide.tsx       Signature/QR creator workflow
-  TravelerConstellation.tsx Onchain attendee-overlap visualization
+  TravelerConstellation.tsx Kinetic Traveler Resonance + verified overlap visualization
+  LiveAttendancePulse.tsx  Live mint signal + Event Replay
   OnchainTimeline.tsx       Chronological owned-event history
   TravelerReputation.tsx    Non-financial participation signal
   OrganizerAnalytics.tsx    Creator portfolio analytics
@@ -553,6 +629,17 @@ Passport statistics, Journey Atlas, Onchain Timeline, Traveler overlap, reputati
 # Documentation
 
 The in-app `/docs` section covers:
+
+- Journey Atlas (Hybrid / Map / Journey views);
+- Onchain Timeline;
+- Traveler Network and Traveler Resonance;
+- Traveler Reputation;
+- Organizer Analytics;
+- Organizer Reputation;
+- Live Attendance Pulse;
+- Event Replay;
+- Event Proof Ledger;
+- POAP Proof Cards and verification flows;
 
 - creating a POAP;
 - metadata;

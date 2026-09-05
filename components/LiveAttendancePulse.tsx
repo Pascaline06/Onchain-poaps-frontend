@@ -93,6 +93,9 @@ export function LiveAttendancePulse({
 
   const displayed = mode === "replay" ? arrivals.slice(0, replayIndex + 1) : arrivals;
   const latest = displayed.at(-1) ?? null;
+  const supplyCount = Number(liveSupply ?? 0);
+  const hasHistoricalArrivals = arrivals.length > 0;
+  const hasExistingSupplyWithoutHistory = supplyCount > 0 && !hasHistoricalArrivals;
   const dots = useMemo(() => {
     const count = Math.min(28, Math.max(6, displayed.length || Number(liveSupply ?? 0)));
     return Array.from({ length: count }, (_, i) => {
@@ -119,7 +122,12 @@ export function LiveAttendancePulse({
         </div>
         <div className="attendance-pulse-tabs" role="tablist" aria-label="Attendance view">
           <button className={mode === "live" ? "is-active" : ""} onClick={() => { setMode("live"); setReplaying(false); }}>● Live</button>
-          <button className={mode === "replay" ? "is-active" : ""} onClick={startReplay}>↻ Replay</button>
+          <button
+            className={mode === "replay" ? "is-active" : ""}
+            onClick={startReplay}
+            disabled={!hasHistoricalArrivals}
+            title={!hasHistoricalArrivals ? (hasExistingSupplyWithoutHistory ? "Historical mint logs were not returned within the RPC scan window." : "Replay becomes available after the first verified mint.") : "Replay verified attendance history"}
+          >↻ {hasHistoricalArrivals ? "Replay" : "Replay unavailable"}</button>
         </div>
       </div>
 
@@ -147,9 +155,14 @@ export function LiveAttendancePulse({
         <aside className="attendance-pulse-side">
           <div className="attendance-pulse-stat"><span>Event</span><strong>{eventName}</strong></div>
           <div className="attendance-pulse-stat"><span>Onchain supply</span><strong>{liveSupply === undefined ? "—" : Number(liveSupply).toLocaleString()}</strong></div>
-          <div className="attendance-pulse-stat"><span>{mode === "live" ? "Latest arrival" : "Replay cursor"}</span><strong>{latest ? short(latest.recipient) : "Waiting for first claim"}</strong>{latest && <small>Block {latest.blockNumber.toString()}</small>}</div>
+          <div className="attendance-pulse-stat">
+            <span>{mode === "live" ? "Latest arrival" : "Replay cursor"}</span>
+            <strong>{latest ? short(latest.recipient) : hasExistingSupplyWithoutHistory ? "Historical arrival unavailable" : "Waiting for first claim"}</strong>
+            {latest && <small>Block {latest.blockNumber.toString()}</small>}
+            {!latest && hasExistingSupplyWithoutHistory && <small>Existing supply detected — listening for the next live mint.</small>}
+          </div>
           <div className="attendance-replay-controls">
-            <button onClick={startReplay} disabled={!arrivals.length}>Replay from start</button>
+            <button onClick={startReplay} disabled={!hasHistoricalArrivals}>{hasHistoricalArrivals ? "Replay from start" : "Replay unavailable"}</button>
             {mode === "replay" && <button onClick={() => setReplaying((v) => !v)} disabled={arrivals.length < 2}>{replaying ? "Pause" : "Continue"}</button>}
           </div>
           {historyIncomplete && <p className="attendance-history-note">Replay uses the verified mint history returned within the RPC time budget, so very old claims may be omitted.</p>}
@@ -158,7 +171,7 @@ export function LiveAttendancePulse({
 
       <div className="attendance-arrival-rail" aria-label="Recent verified arrivals">
         {(displayed.length ? displayed.slice(-8) : []).map((row, i) => <div key={`${row.recipient}-${row.blockNumber}-${i}`} className={i === Math.min(7, displayed.length - 1) ? "attendance-arrival is-current" : "attendance-arrival"}><span>{String(Math.max(1, displayed.length - Math.min(8, displayed.length) + i + 1)).padStart(2, "0")}</span><strong>{short(row.recipient)}</strong><small>block {row.blockNumber.toString()}</small></div>)}
-        {!displayed.length && <div className="attendance-empty-arrivals">No verified claims found yet. The pulse will react when the next attendee mints.</div>}
+        {!displayed.length && <div className="attendance-empty-arrivals">{hasExistingSupplyWithoutHistory ? "Existing supply detected. Historical arrivals weren’t returned within the RPC scan window; the pulse will react instantly to the next verified mint." : "No verified claims yet. The pulse will react instantly when the first attendee mints."}</div>}
       </div>
     </section>
   );

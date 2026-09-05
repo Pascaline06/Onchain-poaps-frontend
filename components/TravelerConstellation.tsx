@@ -52,12 +52,6 @@ export function TravelerConstellation({ travelers, eventNames }: { travelers: Tr
             <filter id="softGlow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
           </defs>
 
-          <g className="traveler-resonance-field">
-            {[116,156,188].map((r,i)=><ellipse key={r} cx="210" cy="210" rx={r} ry={r*(.72+i*.04)} className={`traveler-field-ring field-${i+1}`}/>) }
-            <path d="M46 210 C110 115 310 115 374 210 C310 305 110 305 46 210Z" className="traveler-field-arc"/>
-            <path d="M210 42 C302 105 302 315 210 378 C118 315 118 105 210 42Z" className="traveler-field-arc arc-b"/>
-          </g>
-
           {positioned.map(({traveler,x,y},i)=>{
             const active=selected?.address===traveler.address;
             const strength=traveler.sharedEventIds.length/maxCount;
@@ -77,24 +71,17 @@ export function TravelerConstellation({ travelers, eventNames }: { travelers: Tr
           </g>}
 
           <g className="traveler-prism-wrap" filter="url(#resonanceGlow)">
-            <polygon className="traveler-prism-shadow" points="210,118 270,143 302,210 270,277 210,302 150,277 118,210 150,143"/>
-            <polygon className="traveler-prism-shape prism-a" points="210,122 272,146 296,210 272,274 210,298 148,274 124,210 148,146">
-              <animate attributeName="points" dur="13s" repeatCount="indefinite"
-                values="210,122 272,146 296,210 272,274 210,298 148,274 124,210 148,146;
-                        210,110 240,171 308,151 257,210 308,269 240,249 210,310 180,249 112,269 163,210 112,151 180,171;
-                        210,128 283,156 283,194 309,210 283,226 283,264 210,292 137,264 137,226 111,210 137,194 137,156;
-                        210,114 256,153 302,178 276,225 252,294 210,276 168,294 144,225 118,178 164,153 210,114 210,114;
-                        210,122 272,146 296,210 272,274 210,298 148,274 124,210 148,146 210,122 210,122 210,122 210,122"/>
+            <polygon className="traveler-prism-shape prism-a" points="210,56 316,96 364,210 316,324 210,364 104,324 56,210 104,96">
+              <animate attributeName="points" dur="12s" repeatCount="indefinite" calcMode="spline" keySplines=".42 0 .58 1;.42 0 .58 1;.42 0 .58 1;.42 0 .58 1"
+                values="210,56 316,96 364,210 316,324 210,364 104,324 56,210 104,96;
+                        210,40 252,128 376,102 286,210 376,318 252,292 210,380 168,292 44,318 134,210 44,102 168,128;
+                        210,48 350,126 326,210 350,294 210,372 70,294 94,210 70,126;
+                        210,36 266,112 356,146 310,232 266,376 210,340 154,376 110,232 64,146 154,112;
+                        210,56 316,96 364,210 316,324 210,364 104,324 56,210 104,96"/>
             </polygon>
-            <polygon className="traveler-prism-shape prism-b" points="210,146 259,169 274,210 259,251 210,274 161,251 146,210 161,169"/>
-            <polygon className="traveler-prism-shape prism-c" points="210,166 247,188 247,232 210,254 173,232 173,188"/>
-            <path d="M210 122 L272 146 L247 188 L210 166 Z" className="traveler-prism-facet facet-top"/>
-            <path d="M272 146 L296 210 L247 232 L247 188 Z" className="traveler-prism-facet facet-right"/>
-            <path d="M210 298 L148 274 L173 232 L210 254 Z" className="traveler-prism-facet facet-bottom"/>
-            <path d="M148 146 L124 210 L173 232 L173 188 Z" className="traveler-prism-facet facet-left"/>
-            <circle cx="210" cy="210" r="34" className="traveler-core-lens"/>
+            <circle cx="210" cy="210" r="40" className="traveler-core-lens"/>
             <text x="210" y="207" textAnchor="middle" className="traveler-core-title">YOU</text>
-            <text x="210" y="220" textAnchor="middle" className="traveler-core-sub">{shown.length?`${shown.length} SIGNALS`:"WAITING"}</text>
+            <text x="210" y="222" textAnchor="middle" className="traveler-core-sub">{shown.length?`${shown.length} SIGNALS`:"WAITING"}</text>
           </g>
 
           {positioned.map(({traveler,x,y,kind},i)=>{

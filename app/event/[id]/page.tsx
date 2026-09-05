@@ -10,6 +10,7 @@ import { MintPanel } from "@/components/MintPanel";
 import { OrganizerReputation } from "@/components/OrganizerReputation";
 import { Countdown } from "@/components/Countdown";
 import { EventVerificationPanel } from "@/components/EventVerificationPanel";
+import { LiveAttendancePulse } from "@/components/LiveAttendancePulse";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
@@ -42,6 +43,7 @@ export default function EventPage(){
       <div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-accent/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-accent">VERIFIED ONCHAIN</span>{isSoulbound&&<span className="rounded-full bg-ink/10 px-3 py-1 text-[10px] font-bold">SOULBOUND</span>}{isPublic&&<span className="rounded-full bg-accent/10 px-3 py-1 text-[10px] font-bold text-accent">PUBLIC MINT</span>}{allowlistRoot!=="0x0000000000000000000000000000000000000000000000000000000000000000"&&<span className="rounded-full bg-ink/10 px-3 py-1 text-[10px] font-bold">ALLOWLIST</span>}<Countdown createdAt={createdAt} kind="creator"/><Countdown createdAt={createdAt} kind="signature"/></div>
         <h1 className="mt-5 max-w-3xl text-5xl font-black tracking-[-.045em] sm:text-6xl">{name||`POAP #${params.id}`}</h1><p className="mt-4 text-lg font-medium text-ink/55">{description||"A permanent proof-of-attendance record."}</p>
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="card p-4"><b className="stat-number">{supply===undefined?"—":Number(supply).toLocaleString()}</b><p className="eyebrow mt-1">POAPs minted</p></div><div className="card p-4"><b className="stat-number">{date.split(",")[0]}</b><p className="eyebrow mt-1">Event date</p></div><div className="card p-4"><b className="text-lg font-black">{location||"—"}</b><p className="eyebrow mt-2">Location</p></div><div className="card p-4"><b className="text-lg font-black">#{params.id}</b><p className="eyebrow mt-2">Event ID</p></div></div>
+        <div className="mt-8"><LiveAttendancePulse eventId={id} chainId={chainId} eventName={name||`POAP #${params.id}`}/></div>
         <div className="mt-6"><MintPanel eventId={id} evt={{name,isPublic,isSoulbound,allowlistRoot,createdAt,creator}} prefillSig={prefillSig}/></div>
         {prefillSig&&<p className="mt-3 rounded-xl border border-accent/20 bg-accent/5 p-3 text-xs font-semibold text-ink/60">Signature authorization detected from your QR/link. Connect the matching recipient wallet and mint.</p>}
         <div className="mt-8"><EventVerificationPanel eventId={id} creator={creator} supply={Number(supply??0)} isSoulbound={Boolean(isSoulbound)} isPublic={Boolean(isPublic)} hasAllowlist={allowlistRoot!=="0x0000000000000000000000000000000000000000000000000000000000000000"} metadataPresent={Boolean(meta)}/></div>

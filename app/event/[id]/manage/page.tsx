@@ -68,6 +68,7 @@ export default function ManagePage() {
           <p className="mt-1 text-xs text-ink/50">
             Kiosk mode is a full-screen QR + live mint counter, made for projecting at a physical event.
           </p>
+          <a href={`/event/${eventId}#live-attendance-pulse`} className="mt-3 inline-flex text-xs font-black uppercase tracking-[.12em] text-accent">Open Live Attendance Pulse + Event Replay →</a>
           <div className="mt-2 flex gap-2">
             <Countdown createdAt={createdAt} kind="creator" />
             <Countdown createdAt={createdAt} kind="signature" />

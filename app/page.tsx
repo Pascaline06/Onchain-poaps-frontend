@@ -41,7 +41,7 @@ export default function Home() {
           <Link href="/passport" className="reference-card reference-feature-card">
             <p className="reference-kicker accent-kicker">EVENT PASSPORT</p>
             <h3>Your attendance, assembled into one journey.</h3>
-            <p>Open your permanent passport, event stamps, locations, organizers and Journey Orbit.</p>
+            <p>Open your permanent passport, event stamps, locations, organizers, the Journey Atlas and your Onchain Timeline.</p>
             <span>OPEN PASSPORT →</span>
           </Link>
           <Link href="/travelers" className="reference-card reference-feature-card">

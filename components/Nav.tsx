@@ -15,10 +15,13 @@ const links = [
 
 const featureLinks = [
   ["/passport", "Event Passport", "Your permanent attendance record"],
-  ["/passport#journey-orbit", "Journey Orbit", "See every owned POAP mapped visually"],
+  ["/passport#journey-orbit", "Journey Atlas", "Map owned POAPs by place and time"],
+  ["/passport#onchain-timeline", "Onchain Timeline", "Read your attendance history chronologically"],
   ["/travelers", "Traveler Network", "Find wallets that attended with you"],
+  ["/travelers#traveler-reputation", "Traveler Reputation", "Participation score without financial weighting"],
   ["/organizer", "Organizer Command Center", "Create, manage and measure events"],
   ["/organizer#organizer-reputation", "Organizer Reputation", "Onchain activity and claim score"],
+  ["/organizer#organizer-analytics", "Organizer Analytics", "Claims, distribution mix and portfolio signal"],
   ["/proof", "POAP Proof Cards", "Share and verify attendance proof"],
 ] as const;
 

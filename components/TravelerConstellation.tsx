@@ -3,157 +3,70 @@ import { useMemo, useState } from "react";
 import type { Traveler } from "@/lib/useFellowTravelers";
 
 const MAX_NODES = 20;
-
-function truncate(addr: string): string {
-  return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
-}
-
-// Three rings by connection strength, rather than continuous distance —
-// continuous placement looks nice but is nearly impossible to actually
-// read at a glance ("is that node 60% or 65% of the way out?"). Discrete
-// tiers are legible; the tier itself is the information.
-function ringForCount(count: number, maxCount: number): { radius: number; label: string } {
-  if (maxCount <= 1) return { radius: 150, label: "Crossed paths once" };
+function truncate(addr: string) { return `${addr.slice(0, 6)}…${addr.slice(-4)}`; }
+function ringForCount(count: number, maxCount: number) {
+  if (maxCount <= 1) return 150;
   const ratio = count / maxCount;
-  if (ratio >= 0.75) return { radius: 85, label: "Close travelers" };
-  if (ratio >= 0.4) return { radius: 130, label: "Familiar faces" };
-  return { radius: 170, label: "Crossed paths" };
+  if (ratio >= .75) return 88;
+  if (ratio >= .4) return 132;
+  return 170;
 }
 
-export function TravelerConstellation({
-  travelers,
-  eventNames,
-}: {
-  travelers: Traveler[];
-  eventNames: Map<string, string>;
-}) {
-  const [selected, setSelected] = useState<Traveler | null>(null);
-  const shown = travelers.slice(0, MAX_NODES);
-  const overflow = travelers.length - shown.length;
-  const maxCount = Math.max(1, ...shown.map((t) => t.sharedEventIds.length));
+export function TravelerConstellation({ travelers, eventNames }: { travelers: Traveler[]; eventNames: Map<string,string> }) {
+  const [selected,setSelected]=useState<Traveler|null>(travelers[0]??null);
+  const shown=travelers.slice(0,MAX_NODES);
+  const maxCount=Math.max(1,...shown.map(t=>t.sharedEventIds.length));
+  const positioned=useMemo(()=>shown.map((traveler,i)=>{
+    const radius=ringForCount(traveler.sharedEventIds.length,maxCount);
+    const ringPeers=shown.filter(t=>ringForCount(t.sharedEventIds.length,maxCount)===radius);
+    const peerIndex=ringPeers.findIndex(t=>t.address===traveler.address);
+    const angle=(peerIndex/Math.max(1,ringPeers.length))*Math.PI*2-Math.PI/2+(radius===132?.16:radius===170?.28:0);
+    return {traveler,radius,x:210+radius*Math.cos(angle),y:210+radius*Math.sin(angle)};
+  }),[shown,maxCount]);
 
-  const positioned = useMemo(() => {
-    return shown.map((t, i) => {
-      const angle = (i / shown.length) * Math.PI * 2 - Math.PI / 2;
-      const { radius, label } = ringForCount(t.sharedEventIds.length, maxCount);
-      return {
-        traveler: t,
-        x: 200 + radius * Math.cos(angle),
-        y: 200 + radius * Math.sin(angle),
-        radius,
-        ringLabel: label,
-      };
-    });
-  }, [shown, maxCount]);
+  if (!shown.length) return <div className="traveler-constellation-empty"><span className="eyebrow text-accent">FELLOW TRAVELERS</span><h3>No shared paths yet.</h3><p>When another wallet claims one of the same POAPs, that verified overlap will appear here.</p></div>;
 
-  if (shown.length === 0) {
-    return (
-      <div className="card flex h-80 flex-col items-center justify-center gap-2 p-8 text-center">
-        <span className="stamp text-xs">NO OVERLAP YET</span>
-        <p className="mt-3 max-w-xs text-sm text-ink/60">
-          Nobody else has minted the same POAPs as you yet — mint something a few other people have
-          claimed too, and they'll show up here.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_260px]">
-      <div className="card flex items-center justify-center overflow-hidden p-4">
-        <svg viewBox="0 0 400 400" className="w-full max-w-md">
-          {/* Connection lines, drawn first so they sit under the nodes */}
-          {positioned.map(({ traveler, x, y }) => {
-            const strength = traveler.sharedEventIds.length / maxCount;
-            return (
-              <line
-                key={`line-${traveler.address}`}
-                x1={200}
-                y1={200}
-                x2={x}
-                y2={y}
-                stroke="#ff5a1f"
-                strokeWidth={1 + strength * 3}
-                strokeOpacity={0.25 + strength * 0.5}
-              />
-            );
+  return <section className="traveler-network-stage">
+    <div className="traveler-network-copy">
+      <p className="eyebrow text-accent">FELLOW TRAVELER CONSTELLATION</p>
+      <h3>Your attendance graph.</h3>
+      <p>Distance represents how often you crossed paths. The closer a wallet sits to you, the more events you share.</p>
+    </div>
+    <div className="traveler-network-grid">
+      <div className="traveler-constellation-canvas">
+        <svg viewBox="0 0 420 420" className="w-full" aria-label="Network of wallets that attended the same events">
+          <defs>
+            <radialGradient id="travelerCore"><stop offset="0" stopColor="#ff8c4f"/><stop offset="1" stopColor="#ff5616"/></radialGradient>
+            <filter id="travelerGlow"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          {[88,132,170].map((r,i)=><circle key={r} cx="210" cy="210" r={r} className={`traveler-orbit-ring ring-${i+1}`} />)}
+          {positioned.map(({traveler,x,y})=>{
+            const strength=traveler.sharedEventIds.length/maxCount;
+            const active=selected?.address===traveler.address;
+            return <g key={`line-${traveler.address}`}><line x1="210" y1="210" x2={x} y2={y} className="traveler-edge" style={{opacity:.18+strength*.48}} />{active&&<line x1="210" y1="210" x2={x} y2={y} className="traveler-edge-active" />}</g>;
           })}
-
-          {/* Reference rings, faint */}
-          {[85, 130, 170].map((r) => (
-            <circle key={r} cx={200} cy={200} r={r} fill="none" stroke="#0b0d10" strokeOpacity={0.06} />
-          ))}
-
-          {/* You, at the center */}
-          <g>
-            <circle cx={200} cy={200} r={26} fill="#faf7f0" stroke="#ff5a1f" strokeWidth={3} />
-            <text x={200} y={205} textAnchor="middle" fontSize={11} fontWeight="bold" fill="#ff5a1f" fontFamily="Georgia, serif">
-              YOU
-            </text>
-          </g>
-
-          {positioned.map(({ traveler, x, y }) => {
-            const isSelected = selected?.address === traveler.address;
-            const size = 10 + (traveler.sharedEventIds.length / maxCount) * 8;
-            return (
-              <g
-                key={traveler.address}
-                onClick={() => setSelected(isSelected ? null : traveler)}
-                className="cursor-pointer"
-              >
-                <circle
-                  cx={x}
-                  cy={y}
-                  r={size}
-                  fill={isSelected ? "#ff5a1f" : "#0b0d10"}
-                  fillOpacity={isSelected ? 1 : 0.85}
-                  stroke="#faf7f0"
-                  strokeWidth={2}
-                />
-              </g>
-            );
+          <circle cx="210" cy="210" r="32" fill="rgba(255,103,31,.11)" className="traveler-core-halo" />
+          <circle cx="210" cy="210" r="22" fill="url(#travelerCore)" filter="url(#travelerGlow)" />
+          <text x="210" y="214" textAnchor="middle" className="traveler-you-label">YOU</text>
+          {positioned.map(({traveler,x,y})=>{
+            const active=selected?.address===traveler.address;
+            const size=8+(traveler.sharedEventIds.length/maxCount)*8;
+            return <g key={traveler.address} role="button" tabIndex={0} className="traveler-node" onClick={()=>setSelected(traveler)} onKeyDown={e=>{if(e.key==="Enter"||e.key===" ")setSelected(traveler)}}>
+              {active&&<circle cx={x} cy={y} r={size+11} className="traveler-node-selected-halo" />}
+              <circle cx={x} cy={y} r={size} className={active?"traveler-node-dot is-active":"traveler-node-dot"} />
+              <text x={x} y={y+size+15} textAnchor="middle" className="traveler-node-label">{traveler.sharedEventIds.length} shared</text>
+            </g>;
           })}
         </svg>
+        <div className="traveler-ring-legend"><span><i/>Close travelers</span><span><i/>Familiar faces</span><span><i/>Crossed paths</span></div>
       </div>
-
-      <div className="space-y-4">
-        <div>
-          <p className="font-display text-lg font-semibold">
-            {travelers.length} fellow traveler{travelers.length === 1 ? "" : "s"}
-          </p>
-          <p className="text-xs text-ink/50">
-            Tap a point to see what you share. {overflow > 0 ? `Showing the ${MAX_NODES} closest — ${overflow} more not pictured.` : ""}
-          </p>
+      <aside className="traveler-network-aside">
+        <div className="traveler-selected-card">
+          <p className="eyebrow">SELECTED TRAVELER</p>
+          {selected?<><strong className="traveler-address">{truncate(selected.address)}</strong><span className="traveler-shared-count">{selected.sharedEventIds.length} shared event{selected.sharedEventIds.length===1?"":"s"}</span><div className="traveler-shared-events">{selected.sharedEventIds.map(id=><span key={id.toString()}>{eventNames.get(id.toString())??`POAP #${id}`}</span>)}</div><a href={`https://sepolia.basescan.org/address/${selected.address}`} target="_blank" rel="noreferrer">Verify wallet on BaseScan ↗</a></>:<p>Tap a node to inspect the overlap.</p>}
         </div>
-
-        {selected ? (
-          <div className="card p-4">
-            <p className="font-mono text-sm font-semibold text-accent">{truncate(selected.address)}</p>
-            <p className="mt-1 text-xs text-ink/50">
-              {selected.sharedEventIds.length} shared POAP{selected.sharedEventIds.length === 1 ? "" : "s"}
-            </p>
-            <ul className="mt-3 space-y-1.5">
-              {selected.sharedEventIds.map((id) => (
-                <li key={id.toString()} className="text-sm text-ink/80">
-                  · {eventNames.get(id.toString()) ?? `POAP #${id}`}
-                </li>
-              ))}
-            </ul>
-            <a
-              href={`https://sepolia.basescan.org/address/${selected.address}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-3 inline-block text-xs text-ink/40 underline hover:text-accent"
-            >
-              View on BaseScan
-            </a>
-          </div>
-        ) : (
-          <div className="card p-4 text-sm text-ink/50">
-            Nobody selected yet — tap any point in the constellation.
-          </div>
-        )}
-      </div>
+        <div className="traveler-closest-list"><p className="eyebrow">CLOSEST TRAVELERS</p>{travelers.slice(0,4).map((t,i)=><button key={t.address} onClick={()=>setSelected(t)}><span>{String(i+1).padStart(2,"0")}</span><strong>{truncate(t.address)}</strong><em>{t.sharedEventIds.length} shared</em></button>)}</div>
+      </aside>
     </div>
-  );
+  </section>;
 }

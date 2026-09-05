@@ -9,6 +9,7 @@ import { POAPArtwork } from "@/components/POAPArtwork";
 import { MintPanel } from "@/components/MintPanel";
 import { OrganizerReputation } from "@/components/OrganizerReputation";
 import { Countdown } from "@/components/Countdown";
+import { EventVerificationPanel } from "@/components/EventVerificationPanel";
 import { POAP_ABI } from "@/lib/abi";
 import { contractAddress, DEFAULT_CHAIN } from "@/lib/contract";
 import { decodeTokenUri } from "@/lib/metadata";
@@ -43,6 +44,7 @@ export default function EventPage(){
         <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4"><div className="card p-4"><b className="stat-number">{supply===undefined?"—":Number(supply).toLocaleString()}</b><p className="eyebrow mt-1">POAPs minted</p></div><div className="card p-4"><b className="stat-number">{date.split(",")[0]}</b><p className="eyebrow mt-1">Event date</p></div><div className="card p-4"><b className="text-lg font-black">{location||"—"}</b><p className="eyebrow mt-2">Location</p></div><div className="card p-4"><b className="text-lg font-black">#{params.id}</b><p className="eyebrow mt-2">Event ID</p></div></div>
         <div className="mt-6"><MintPanel eventId={id} evt={{name,isPublic,isSoulbound,allowlistRoot,createdAt,creator}} prefillSig={prefillSig}/></div>
         {prefillSig&&<p className="mt-3 rounded-xl border border-accent/20 bg-accent/5 p-3 text-xs font-semibold text-ink/60">Signature authorization detected from your QR/link. Connect the matching recipient wallet and mint.</p>}
+        <div className="mt-8"><EventVerificationPanel eventId={id} creator={creator} supply={Number(supply??0)} isSoulbound={Boolean(isSoulbound)} isPublic={Boolean(isPublic)} hasAllowlist={allowlistRoot!=="0x0000000000000000000000000000000000000000000000000000000000000000"} metadataPresent={Boolean(meta)}/></div>
         <div className="mt-8 grid gap-4 sm:grid-cols-2"><OrganizerReputation creator={creator} events={organizerEvents||1} attendees={organizerClaims||Number(supply??0)}/><div className="card p-5"><p className="eyebrow">Verify independently</p><p className="mt-2 text-sm font-semibold">Contract creator: {shortAddress(creator)}</p><p className="mt-1 text-xs text-ink/45">The record can be inspected without trusting this frontend.</p><a href={baseScanAddressUrl(creator)} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-xl border border-ink/20 px-4 py-2 text-xs font-bold hover:border-accent hover:text-accent">View creator on BaseScan ↗</a><a href={baseScanAddressUrl(contractAddress(chainId))} target="_blank" rel="noreferrer" className="ml-2 mt-4 inline-flex rounded-xl border border-ink/20 px-4 py-2 text-xs font-bold hover:border-accent hover:text-accent">View contract ↗</a>{externalUrl&&<a href={externalUrl} target="_blank" rel="noreferrer" className="ml-2 mt-4 inline-flex rounded-xl border border-ink/20 px-4 py-2 text-xs font-bold">Event link ↗</a>}</div></div>
         <Link href={`/event/${params.id}/manage`} className="mt-6 inline-flex text-sm font-bold text-accent">Creator? Manage this POAP →</Link>
       </div>

@@ -35,11 +35,14 @@ A POAP is treated as more than a token card. It becomes a piece of a person's at
 That is why the app includes the full bounty-required contract experience **plus** a set of product layers built on top of the same live onchain data:
 
 - **Event Passport** — owned POAPs become a chronological attendance record rather than an isolated token grid.
-- **Journey Orbit** — a visual map of the POAPs in a connected wallet; every visible point corresponds to a real owned event, not fabricated history.
+- **Journey Atlas** — a hybrid world map + chronological route of owned POAPs, with real event locations when they can be resolved from onchain metadata.
+- **Onchain Timeline** — an ordered history of owned events that makes the Passport readable as a sequence, not just a collection.
 - **Traveler Network** — discovers wallets that attended the same events by reading mint history for events the connected user actually owns.
+- **Traveler Reputation** — a non-financial participation score based on event, location, organizer and fellow-traveler diversity.
 - **Organizer Command Center** — a creator-facing portfolio of events, claims, distribution controls, QR kiosk entry points, and management actions.
+- **Organizer Analytics** — claims-per-event, distribution mix and portfolio signals derived from live contract data.
 - **Organizer Reputation** — a transparent activity score derived from verifiable events created and claims received. It is intentionally presented as a product heuristic, not a protocol-level trust oracle.
-- **POAP Proof Cards** — shareable attendance cards that preserve the original POAP artwork and link back to verifiable onchain evidence.
+- **Event Proof Ledger + POAP Proof Cards** — readable verification surfaces that preserve original artwork and point back to onchain evidence.
 
 The result is not just a contract dashboard. It is an attendance product.
 
@@ -170,19 +173,23 @@ The Passport summarizes:
 - events attended;
 - locations represented by event metadata;
 - organizers represented in the collection; and
-- the visual **Journey Orbit**.
+- the geographic **Journey Atlas** and chronological **Onchain Timeline**.
 
 The Passport is deliberately derived from owned POAPs. If a wallet owns zero relevant tokens, the Orbit is empty rather than inventing a history for visual effect.
 
 ---
 
-## Journey Orbit — `/passport#journey-orbit`
+## Journey Atlas — `/passport#journey-orbit`
 
-Journey Orbit is the visual identity layer of the Passport.
+Journey Atlas combines two views of attendance that are more useful together than apart: **where** an event happened and **when** it happened. Recognized event locations are pinned to a world map and connected in attendance order. Events whose free-form location cannot be safely resolved are kept in the chronology rather than placed at invented coordinates.
 
-Every orbiting event marker represents one POAP owned by the connected wallet. Where artwork is available, the marker uses that event's original onchain image. The same events are also listed below the visualization so the experience remains understandable and usable on small screens.
+Every pin still points to the real event page and original onchain artwork. The map is therefore an interface over owned POAP data, not decorative geography.
 
-It is a visualization of verifiable attendance, not an offchain reputation feed.
+---
+
+## Onchain Timeline — `/passport#onchain-timeline`
+
+The timeline turns the same owned events into a clean chronological history with date, location and a link to the permanent event record. It complements the Atlas and makes the Passport understandable even when an event has no mappable location.
 
 ---
 
@@ -198,6 +205,10 @@ Traveler Network:
 4. shows the overlap as a traveler constellation.
 
 This keeps the feature grounded in contract history instead of requiring a separate social database.
+
+### Traveler Reputation
+
+The Traveler page also includes a participation score that uses event count, location diversity, organizer diversity and verified fellow-traveler overlap. It intentionally excludes wallet balance, token price and NFT value so the score rewards showing up rather than spending.
 
 ---
 
@@ -221,11 +232,17 @@ The intent is simple: an organizer should be able to operate a real POAP campaig
 
 ---
 
-## Organizer Reputation — `/organizer#reputation`
+## Organizer Analytics — `/organizer#organizer-analytics`
 
-Organizer Reputation is a transparent, product-level score based on verifiable activity such as events created and POAP claims.
+Organizer Analytics turns a creator wallet's event portfolio into operational signals: claims per event, total claims, public-mint mix, configured allowlists and strongest event by claims. The dashboard derives these numbers from contract reads rather than a private analytics backend.
 
-It is **not** presented as an objective identity score, financial rating, or protocol primitive. Its purpose is to help users quickly understand whether an organizer has a meaningful onchain event history while keeping the source activity inspectable.
+---
+
+## Organizer Reputation — `/organizer#organizer-reputation`
+
+Organizer Reputation is a transparent, product-level participation score based on verifiable events created and POAP claims.
+
+It is **not** a financial rating, hidden trust score, or protocol primitive. The score does not change permissions; it simply summarizes observable activity in a form users can understand quickly.
 
 ---
 
@@ -371,7 +388,7 @@ There is no application database required for the core experience. The chain is 
 | `/event/[id]/manage` | Creator controls |
 | `/event/[id]/kiosk` | Live-event QR/kiosk flow |
 | `/gallery` | Collection/gallery experience |
-| `/passport` | Event Passport + Journey Orbit |
+| `/passport` | Event Passport + Journey Atlas + Onchain Timeline |
 | `/travelers` | Fellow Traveler network |
 | `/organizer` | Organizer Command Center + Reputation |
 | `/proof` | Owned POAP proof hub |
@@ -471,7 +488,7 @@ app/
   events/                  Event discovery
   gallery/                 Collection gallery
   organizer/               Organizer Command Center
-  passport/                Event Passport + Journey Orbit
+  passport/                Event Passport + Journey Atlas + Onchain Timeline
   proof/                   Proof hub
   proof/[eventId]/          Individual proof card
   register/                Event registration
@@ -480,12 +497,16 @@ app/
 components/
   AllowlistManager.tsx      Address list → root/proof workflow
   ConnectWallet.tsx        Standalone/mobile wallet UX
-  JourneyOrbit.tsx         Owned-event orbit visualization
+  JourneyOrbit.tsx         Geographic + chronological Journey Atlas
   MintPanel.tsx             Mint mechanism UX
   OrganizerReputation.tsx  Verifiable organizer activity summary
   RegisterForm.tsx         Contract registration workflow
   SignatureGuide.tsx       Signature/QR creator workflow
   TravelerConstellation.tsx Onchain attendee-overlap visualization
+  OnchainTimeline.tsx       Chronological owned-event history
+  TravelerReputation.tsx    Non-financial participation signal
+  OrganizerAnalytics.tsx    Creator portfolio analytics
+  EventVerificationPanel.tsx Readable event proof ledger
   ...
 
 lib/
@@ -525,7 +546,7 @@ QR distribution, kiosk mode, allowlist tooling, mobile wallet handling, and Farc
 
 ### Never fake the attendance graph
 
-Passport statistics, Journey Orbit, Traveler overlap, and organizer activity are derived from contract/ownership data. Empty wallets show empty states.
+Passport statistics, Journey Atlas, Onchain Timeline, Traveler overlap, reputation layers, and organizer analytics are derived from contract/ownership data. Empty wallets show empty states.
 
 ---
 
@@ -546,7 +567,7 @@ The in-app `/docs` section covers:
 - verification;
 - Gallery;
 - Event Passport;
-- Journey Orbit;
+- Journey Atlas + Onchain Timeline;
 - Traveler Network;
 - Organizer Command Center;
 - Organizer Reputation;

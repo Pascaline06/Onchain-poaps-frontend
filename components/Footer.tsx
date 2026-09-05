@@ -35,8 +35,11 @@ export function Footer() {
             <div>
               <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-wider text-ink/60">Built in</p>
               <div className="flex flex-col gap-2.5 font-medium text-ink/80">
-                <a href="/passport" className="transition-colors hover:text-accent">Journey Orbit</a>
-                <a href="/organizer" className="transition-colors hover:text-accent">Organizer Reputation</a>
+                <a href="/passport#journey-orbit" className="transition-colors hover:text-accent">Journey Atlas</a>
+                <a href="/passport#onchain-timeline" className="transition-colors hover:text-accent">Onchain Timeline</a>
+                <a href="/travelers#traveler-reputation" className="transition-colors hover:text-accent">Traveler Reputation</a>
+                <a href="/organizer#organizer-reputation" className="transition-colors hover:text-accent">Organizer Reputation</a>
+                <a href="/organizer#organizer-analytics" className="transition-colors hover:text-accent">Organizer Analytics</a>
                 <a href="/proof" className="transition-colors hover:text-accent">POAP Proof Cards</a>
                 <a href="/docs#signature" className="transition-colors hover:text-accent">QR & Signature Minting</a>
                 <a href="/docs#allowlist" className="transition-colors hover:text-accent">Allowlist Tools</a>

@@ -17,8 +17,11 @@ const sections = [
   ["gallery", "Gallery"],
   ["passport", "Event Passport"],
   ["travelers", "Traveler Network"],
-  ["orbit", "Journey Orbit"],
+  ["traveler-reputation", "Traveler reputation"],
+  ["orbit", "Journey Atlas"],
+  ["timeline", "Onchain Timeline"],
   ["organizer", "Organizer Command Center"],
+  ["analytics", "Organizer analytics"],
   ["reputation", "Organizer reputation"],
   ["proof", "POAP Proof Card"],
   ["farcaster", "Farcaster Mini App"],
@@ -227,15 +230,29 @@ export default function DocsPage() {
             </p>
           </DocSection>
 
-          <DocSection id="orbit" title="Journey Orbit">
+          <DocSection id="traveler-reputation" title="Traveler reputation">
             <p>
-              Journey Orbit is the visual centerpiece of the new attendance experience. Every owned event becomes a
-              point orbiting the user's journey, turning a flat token list into a visual map of participation.
+              Traveler Reputation summarizes verified participation without turning attendance into a financial ranking.
+              The score uses event count, organizer diversity, recognized locations and fellow-traveler overlap. Wallet balance,
+              token prices and NFT value are deliberately excluded. It is a product-level participation signal, not a protocol permission.
+            </p>
+          </DocSection>
+
+          <DocSection id="orbit" title="Journey Atlas">
+            <p>
+              Journey Atlas is a hybrid geographic and chronological visualization. Events whose location can be recognized are
+              pinned onto a real world outline and linked in attendance order; every pin still points to the underlying event record.
             </p>
             <p>
-              It is intentionally derived from real owned event IDs and their contract metadata rather than decorative
-              mock data. The Orbit appears alongside the Passport and Traveler experiences so the visualization stays grounded
-              in verifiable attendance.
+              Locations are resolved from the event metadata already stored through the protocol. Events with locations that cannot
+              be mapped remain in the chronological rail instead of being invented or placed at fake coordinates.
+            </p>
+          </DocSection>
+
+          <DocSection id="timeline" title="Onchain Timeline">
+            <p>
+              The Onchain Timeline presents the same owned events as an ordered history with date, location and permanent event link.
+              It complements the Atlas: the map answers “where?”, while the timeline answers “when and in what order?”.
             </p>
           </DocSection>
 
@@ -252,6 +269,14 @@ export default function DocsPage() {
               <li>Direct links to Manage, QR Kiosk and the public event page.</li>
               <li>One-click route to create another event.</li>
             </ul>
+          </DocSection>
+
+          <DocSection id="analytics" title="Organizer analytics">
+            <p>
+              Organizer Analytics turns the connected creator wallet's event portfolio into readable operational signals: claims per event,
+              total claims, public-mint mix, configured allowlists and the strongest event by claims. These are derived from contract reads,
+              not a private analytics backend.
+            </p>
           </DocSection>
 
           <DocSection id="reputation" title="Organizer reputation">

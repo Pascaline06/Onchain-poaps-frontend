@@ -88,6 +88,10 @@ export function TravelerConstellation({ travelers, eventNames }: { travelers: Tr
             </polygon>
             <polygon className="traveler-prism-shape prism-b" points="210,146 259,169 274,210 259,251 210,274 161,251 146,210 161,169"/>
             <polygon className="traveler-prism-shape prism-c" points="210,166 247,188 247,232 210,254 173,232 173,188"/>
+            <path d="M210 122 L272 146 L247 188 L210 166 Z" className="traveler-prism-facet facet-top"/>
+            <path d="M272 146 L296 210 L247 232 L247 188 Z" className="traveler-prism-facet facet-right"/>
+            <path d="M210 298 L148 274 L173 232 L210 254 Z" className="traveler-prism-facet facet-bottom"/>
+            <path d="M148 146 L124 210 L173 232 L173 188 Z" className="traveler-prism-facet facet-left"/>
             <circle cx="210" cy="210" r="34" className="traveler-core-lens"/>
             <text x="210" y="207" textAnchor="middle" className="traveler-core-title">YOU</text>
             <text x="210" y="220" textAnchor="middle" className="traveler-core-sub">{shown.length?`${shown.length} SIGNALS`:"WAITING"}</text>

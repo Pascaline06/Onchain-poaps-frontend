@@ -1314,22 +1314,29 @@ body {
 @media(max-width:780px){.attendance-pulse-head{flex-direction:column}.attendance-pulse-tabs{align-self:flex-start}.attendance-pulse-grid{grid-template-columns:1fr}.attendance-pulse-visual{min-height:390px;border-right:0;border-bottom:1px solid rgba(255,255,255,.07)}.attendance-pulse-side{padding:18px}.attendance-arrival-rail{grid-template-columns:repeat(2,minmax(0,1fr))}.attendance-pulse-orb{width:min(100%,390px)}}
 @media(prefers-reduced-motion:reduce){.attendance-pulse-visual:before,.attendance-wave,.attendance-dot,.attendance-core-shape,.attendance-live-led{animation:none!important}}
 
-/* Final Traveler Resonance: one dominant solid morphing body, no concentric shell look */
-.traveler-resonance-canvas:before{display:none}
-.traveler-prism-wrap .prism-a{
-  fill:url(#resonanceCore);
-  fill-opacity:1;
-  stroke:#ff9a5c;
-  stroke-width:9;
-  stroke-linejoin:round;
-  filter:drop-shadow(0 0 24px rgba(255,103,31,.88)) drop-shadow(0 0 58px rgba(255,103,31,.42));
-}
-.traveler-prism-wrap{animation:traveler-prism-float 5.2s ease-in-out infinite;transform-origin:210px 210px}
-.traveler-prism-wrap .traveler-core-lens{r:42px;stroke-width:4}
-.traveler-resonance-svg{min-height:520px}
-.traveler-resonance-canvas{min-height:530px}
-@media(max-width:760px){
-  .traveler-resonance-svg{min-height:520px;transform:scale(1.14);transform-origin:50% 51%}
-  .traveler-resonance-canvas{min-height:530px}
-  .traveler-prism-wrap .prism-a{stroke-width:9.5}
+/* Live Attendance Pulse — readability pass */
+.attendance-pulse-head .eyebrow{color:#ff8a45!important;opacity:1}
+.attendance-pulse-head h2{color:#fff}
+.attendance-pulse-head p:not(.eyebrow){color:rgba(255,255,255,.76);font-size:14px;line-height:1.62}
+.attendance-pulse-tabs{border-color:rgba(255,255,255,.18);background:rgba(0,0,0,.58)}
+.attendance-pulse-tabs button{color:rgba(255,255,255,.68)}
+.attendance-pulse-tabs button:disabled{color:rgba(255,255,255,.46)}
+.attendance-pulse-stat{border-color:rgba(255,255,255,.14);background:rgba(255,255,255,.045)}
+.attendance-pulse-stat span{color:rgba(255,255,255,.62);font-size:8.5px}
+.attendance-pulse-stat strong{color:#fff;font-size:15px}
+.attendance-pulse-stat small{color:rgba(255,255,255,.68);font-size:9px;line-height:1.45}
+.attendance-replay-controls button{border-color:rgba(255,103,31,.48);color:#ffad7d;background:rgba(255,103,31,.045)}
+.attendance-replay-controls button:disabled{opacity:.58;color:rgba(255,173,125,.72);border-color:rgba(255,103,31,.22);background:rgba(255,103,31,.025)}
+.attendance-history-note{color:rgba(255,255,255,.56);font-size:9px;line-height:1.58}
+.attendance-live-strip{border-color:rgba(255,255,255,.14);color:rgba(255,255,255,.72);font-size:7.5px;background:rgba(0,0,0,.62)}
+.attendance-arrival strong{color:rgba(255,255,255,.9)}
+.attendance-arrival small{color:rgba(255,255,255,.52)}
+.attendance-empty-arrivals{color:rgba(255,255,255,.72);font-size:11px;line-height:1.55}
+.attendance-core-label{fill:#ffc09c;font-size:6.5px}
+@media(max-width:780px){
+  .attendance-pulse-head p:not(.eyebrow){font-size:13px;color:rgba(255,255,255,.78)}
+  .attendance-pulse-stat span{font-size:8px}
+  .attendance-pulse-stat small{font-size:9px}
+  .attendance-history-note{font-size:9px}
+  .attendance-empty-arrivals{font-size:10.5px}
 }
